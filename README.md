@@ -77,26 +77,27 @@ that come from the Twitter account, whereas you also can read the notifications
 from your IRC bouncer.
 
 So far, we had the following roles in our networks:
-* a publisher that creates messages and feeds them into the network
+* a publisher that creates notification and feeds them into the network
 * a subscriber that wants certain types of messages and gets them eventually
 * a collector that simultaneously acts as subscriber and publisher and does some
-  clever stuff in between, e.g. aggregate messages, send out notification
+  clever stuff in between, e.g. aggregate notifications, send out emails
   and so on.
 
 Data model
 ----------
 
-the main datatype in this model is of course the message.
+the main datatype in this model is of course the notification.
 
 messages have:
-* a `hostname` that identifies the machine which produced this message
-* a `resource`, which identifies the service that produced this message
+* a `hostname` that identifies the machine which produced this notification
+* a `resource`, which identifies the service that produced this notification
 * a `time` field, that contains a unix timestamp indicating the time the
-  message was initially created.
+  notification was initially created.
 * a `urgency`, an integer in the range of `0 <= urgency <= 99`
 * a `subject`, a up to 256 characters long string that in few words describes
   what is going on and
-* `data`, a free-form JSON object that has more information about the message.
+* `data`, a free-form JSON object that has more information about the
+  notification.
 
 resources are part of a tree structure. There are two types of resources:
 * sources, which can only be leaves in the resource structure and
@@ -127,3 +128,60 @@ of `webapp1`.
 
 The resource tree is constructed on the side of the subscriber or the 
 collector.
+
+Network Protocol
+----------------
+
+Messages are sent over the wire or the air as JSON objects wrapped in another
+JSON Object for transport
+
+The transport wrapper object contains the following information:
+* `message_type`: Type of the message as String (up to 32 Characters)
+* `message`: The message object as a String
+* `signature`: The signature of the string in `message`.
+
+### Message types
+
+#### Notification
+
+`Notification` object represented as a string, wrapped in a message object
+
+#### Publish
+
+List of JSON objects with the following properties:
+* `published_resource`: resource string
+* `description` description for the resource
+
+#### Subscribe
+
+List of JSON Objects with the following property
+* `subscribed_resource`: resource string
+
+#### Collect
+
+List of JSON Objects with the following property
+* `collected_resource`: resource string
+
+### Protocol dialogues
+
+#### Collector <-> Source
+```
+Collector: <collect message, '/test'>
+Source: <push message, ...>
+Source: <push message, ...>
+[...]
+```
+
+#### Publisher <-> Subscriber
+```
+Publisher: <publish message, '/text'>
+Subscriber: <subscribe message '/test'>
+Publisher: <notification message, ...>
+Publisher: <notification message, ...>
+```
+or
+```
+Publisher: <publish message, '/text'>
+Subscriber: <subscribe message '/test'>
+Publisher: <error message, 'resource not found'>
+```
