@@ -1,5 +1,3 @@
-[![Build Status](https://travis-ci.org/waaaaargh/notifyme.png?branch=task/travis)](https://travis-ci.org/waaaaargh/notifyme)
-
 NotifyMe...
 ===========
 
