@@ -17,8 +17,10 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from types import FunctionType
-from notifyme.messages import NotificationMessage, ErrorMessage
+from threading import Thread
 
+from notifyme.messages import NotificationMessage, ErrorMessage, \
+                              WrappedProtocolMessage
 
 class CollectorProtocol:
     """
@@ -78,3 +80,47 @@ class CollectorProtocol:
                 return (self, ErrorMessage(e.message))
 
             return (self, None)
+
+
+class SimpleCollector(Thread):
+    """
+    Simple Collector, interacts with a `socket.connection`
+    """
+    def __init__(self, connection, notification_callback):
+        Thread.__init__(self)
+        self.connection = connection
+        self.running = True
+        self.protocol = CollectorProtocol(notification_callback)
+
+    def send_message(self, message):
+        """
+        Send a message to the connected peer
+
+        Args:
+            message(:class:`notifyme.messages.ProtocolMessage`):
+                message to be sent
+        """
+        wrapped_message = WrappedProtocolMessage(message)
+        self.connection.send(wrapped_message.text.encode('utf-8'))
+
+    def receive_message(self):
+        """
+        Receives a message from the connected Peer
+        """
+        received_bytes = self.connection.recv(1024)
+        received_string = received_bytes.decode('utf-8')
+        in_msg = WrappedProtocolMessage.parse(received_string)
+        return in_msg
+
+    def run(self):
+        while self.running:
+            try:
+                in_msg = self.receive_message()
+                out_msg = self.protocol(in_msg)
+            except Exception as e:
+                out_msg = ErrorMessage(e.args[0])
+            if out_msg is not None:
+                try:
+                    self.send_message(out_msg)
+                except Exception as e:
+                    self.running = False
