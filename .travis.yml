@@ -6,4 +6,4 @@ install:
     - pip install pyyaml nose --use-mirrors
 # command to run tests, e.g. python setup.py test
 script:
-    - nosetests-3.3 --with-coverage --cover-html --cover-package=notifyme tests 
+    - nosetests-3.3 tests 
