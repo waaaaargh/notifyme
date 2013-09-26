@@ -14,7 +14,7 @@ class TestCollectorProtocol(TestCase):
             self.assertIsInstance(notification, NotificationMessage)
 
         c = CollectorProtocol(notification_callback=test_callback)
-        r = c(NotificationMessage(notification={}))
+        r = c(NotificationMessage(notification_dict={}))
         self.assertIsNone(r)
         r = c(ErrorMessage("this should get me an error"))
         self.assertIs(type(r), ErrorMessage)

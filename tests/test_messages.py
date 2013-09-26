@@ -40,7 +40,7 @@ class TestMessageCreation(TestCase):
         self.assertIsInstance(e, ErrorMessage)
 
     def test_notification_message(self):
-        n = NotificationMessage(notification="test")
+        n = NotificationMessage(notification_dict={})
         self.assertIsInstance(n, ProtocolMessage)
         self.assertIsInstance(n, NotificationMessage)
 
@@ -71,7 +71,7 @@ class TestMessageParsing(TestCase):
         self.assertDictEqual(e.data, e_new.data)
 
     def test_notification_message(self):
-        n = NotificationMessage(notification={})
+        n = NotificationMessage(notification_dict={})
         w = WrappedProtocolMessage(message=n)
         n_new = WrappedProtocolMessage.parse(w.text)
         self.assertDictEqual(n.data, n_new.data)
