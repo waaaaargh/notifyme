@@ -87,6 +87,18 @@ class SimpleCollector(Thread):
     Simple Collector, interacts with a `socket.connection`
     """
     def __init__(self, connection, notification_callback):
+        """
+        Create a new SimpleCollector that handles a `socket.connection`
+
+        Args:
+            connection(:class: `socket.connection`): Network connection
+                to the peer
+
+            notification_callback(:class:`types.FunctionType`): callable
+                object that is being called when a notification is
+                received
+
+        """
         Thread.__init__(self)
         self.connection = connection
         self.running = True
@@ -98,14 +110,18 @@ class SimpleCollector(Thread):
 
         Args:
             message(:class:`notifyme.messages.ProtocolMessage`):
-                message to be sent
+                message to be sent.
         """
         wrapped_message = WrappedProtocolMessage(message)
         self.connection.send(wrapped_message.text.encode('utf-8'))
 
     def receive_message(self):
         """
-        Receives a message from the connected Peer
+        Receives a message from the connected Peer, blocks as long
+        as it doesn't receive any.
+
+        Returns:
+            :class:`notifyme.messages.ProtocolMessage`
         """
         received_bytes = self.connection.recv(1024)
         received_string = received_bytes.decode('utf-8')
@@ -113,6 +129,9 @@ class SimpleCollector(Thread):
         return in_msg
 
     def run(self):
+        """
+        Handle the communication with a peer.
+        """
         while self.running:
             try:
                 in_msg = self.receive_message()
