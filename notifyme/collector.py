@@ -19,8 +19,11 @@
 from types import FunctionType
 from threading import Thread
 
+from notifyme.statemachine import ReceivingProtocolState, \
+    SendingProtocolState, ProtocolStateMachine
 from notifyme.messages import NotificationMessage, ErrorMessage, \
-                              WrappedProtocolMessage
+    WrappedProtocolMessage
+
 
 class CollectorProtocol:
     """
@@ -42,24 +45,18 @@ class CollectorProtocol:
         if type(notification_callback) is not FunctionType:
             raise ValueError("notification_callback has to be callable!")
 
-        self._state = CollectorProtocol.ReceiveState(notification_callback)
+        self.notification_callback = notification_callback
+        self._state = CollectorProtocol.ReceiveNotificationState(self)
 
     def __call__(self, in_msg):
         self._state, out_msg = self._state(in_msg)
         if out_msg is not None:
             return out_msg
 
-    class ReceiveState:
+    class ReceiveNotificationState(ReceivingProtocolState):
         """
         Initial State of a collector Thread
         """
-        def __init__(self, notification_callback):
-            """
-            Initialize a new State object.
-
-            """
-            self.notification_callback = notification_callback
-
         def __call__(self, in_msg):
             """
             Properly handle incoming ProtocolMessages.
@@ -75,7 +72,7 @@ class CollectorProtocol:
                 return (self, ErrorMessage("This node only accepts \
                                            NotificationMessages"))
             try:
-                self.notification_callback(in_msg)
+                self.context.notification_callback(in_msg)
             except ValueError as e:
                 return (self, ErrorMessage(e.message))
 
@@ -102,7 +99,9 @@ class SimpleCollector(Thread):
         Thread.__init__(self)
         self.connection = connection
         self.running = True
-        self.protocol = CollectorProtocol(notification_callback)
+        self.notification_callback = notification_callback
+        self._protocol = ProtocolStateMachine(
+            initial_state=CollectorProtocol(self))
 
     def send_message(self, message):
         """
@@ -134,7 +133,10 @@ class SimpleCollector(Thread):
         """
         while self.running:
             try:
-                in_msg = self.receive_message()
+                if self._protocol.wait_for_input:
+                    in_msg = self.receive_message()
+                else:
+                    in_msg = None
                 out_msg = self.protocol(in_msg)
             except Exception as e:
                 out_msg = ErrorMessage(e.args[0])
