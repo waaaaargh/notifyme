@@ -81,14 +81,14 @@ class CollectorProtocol:
 
 class SimpleCollector(Thread):
     """
-    Simple Collector, interacts with a `socket.connection`
+    Simple Collector, interacts with a :class:`socket.connection`
     """
     def __init__(self, connection, notification_callback):
         """
         Create a new SimpleCollector that handles a `socket.connection`
 
         Args:
-            connection(:class: `socket.connection`): Network connection
+            connection(:class:`socket.connection`): Network connection
                 to the peer
 
             notification_callback(:class:`types.FunctionType`): callable

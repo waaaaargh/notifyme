@@ -22,6 +22,9 @@ from notifyme.messages import PublishMessage, SubscribeMessage, \
 
 
 class PublisherProtocol:
+    """
+    Protocol as speaken by a publisher
+    """
     def __init__(self, published_resources):
         """
         Initializes a PublisherProtocol
