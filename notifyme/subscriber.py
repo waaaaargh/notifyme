@@ -17,7 +17,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from notifyme.messages import SubscribeMessage, ConfirmationMessage, \
-    ErrorMessage, NotificationMessage
+    ErrorMessage, NotificationMessage, PublishMessage
 from notifyme.statemachine import ReceivingProtocolState
 from notifyme.statemachine import ProtocolStateMachine
 
@@ -53,6 +53,8 @@ class SubscriberProtocol(ProtocolStateMachine):
         `notifyme.messages.SubscribeMessage`.
         """
         def __call__(self, in_msg):
+            if not isinstance(in_msg, PublishMessage):
+                return self, None
             self.context['published_resources'] = \
                 in_msg.data['published_resources']
             sub_msg = SubscribeMessage(subscribed_resources=
@@ -66,7 +68,7 @@ class SubscriberProtocol(ProtocolStateMachine):
         """
         def __call__(self, in_msg):
             if not isinstance(in_msg, ConfirmationMessage):
-                return (None, None)
+                return self, None
             return SubscriberProtocol.ReceiveNotificationState(
                 self.context), None
 

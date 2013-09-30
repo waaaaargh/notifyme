@@ -13,6 +13,7 @@ class TestMessageCreation(TestCase):
         self.assertRaises(ValueError,
                           PublishMessage,
                           {'published_resources': ['asdf', 1234]})
+        self.assertIsNotNone(p.data)
 
     def test_subscribe_message(self):
         s = SubscribeMessage(subscribed_resources=['/test'])
