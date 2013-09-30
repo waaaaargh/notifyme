@@ -16,6 +16,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+from notifyme.statemachine import SendingProtocolState, ReceivingProtocolState
 from notifyme.messages import PublishMessage, SubscribeMessage, \
     ConfirmationMessage, ErrorMessage
 
@@ -30,8 +31,7 @@ class PublisherProtocol:
                 is going to publish.
         """
         self.published_resources = published_resources
-        self._state = PublisherProtocol.SendPublishMessageState(
-            published_resources=self.published_resources)
+        self._state = PublisherProtocol.SendPublishMessageState(self)
 
     def __call__(self, in_msg):
         """
@@ -40,23 +40,20 @@ class PublisherProtocol:
         Returns:
             :class:`notifyme.messages.ProtocolMessage` or None
         """
-        self._state, out_msg = self._state(in_msg)
+        if isinstance(self._state, ReceivingProtocolState):
+            self._state, out_msg = self._state(in_msg)
+        else:
+            self._state, out_msg = self._state()
         return out_msg
 
-    class SendPublishMessageState:
-        def __init__(self, published_resources):
-            self.published_resources = published_resources
-
-        def __call__(self, in_msg):
+    class SendPublishMessageState(SendingProtocolState):
+        def __call__(self):
             return PublisherProtocol.ReceiveSubscriptionMessageState(
-                self.published_resources), \
-                PublishMessage(published_resources=self.published_resources)
+                self.context), \
+                PublishMessage(published_resources=
+                               self.context.published_resources)
 
-    class ReceiveSubscriptionMessageState:
-        def __init__(self, published_resources):
-            self.published_resources = published_resources
-            pass
-
+    class ReceiveSubscriptionMessageState(ReceivingProtocolState):
         def __call__(self, in_msg):
             """
             Handle incoming SubscribedMessage
@@ -71,7 +68,7 @@ class PublisherProtocol:
             unavailable_resources = []
             # check if subscribed resources are valid.
             for resource in in_msg.data['subscribed_resources']:
-                if resource in self.published_resources:
+                if resource in self.context.published_resources:
                     confirmed_resources += [resource]
                 else:
                     unavailable_resources += [resource]
