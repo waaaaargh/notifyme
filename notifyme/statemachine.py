@@ -74,9 +74,11 @@ class ProtocolStateMachine:
             in_msg(:class:`notifyme.messages.ProtocolMessage`)
         """
         if isinstance(self._state, ReceivingProtocolState):
-            self._state, out_msg = self._state()
-        elif isinstance(self._state, SendingProtocolState):
             self._state, out_msg = self._state(in_msg)
+        elif isinstance(self._state, SendingProtocolState):
+            self._state, out_msg = self._state()
+
+        return out_msg
 
     @property
     def wait_for_input(self):
