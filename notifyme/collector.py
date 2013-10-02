@@ -29,7 +29,7 @@ class CollectorProtocol:
     """
     Protocol spoken by the collector
     """
-    def __init__(self, notification_callback):
+    def __init__(self, notification_callback, allowed_resources):
         """
         Initialize a new CollectorProtocol
 
@@ -41,11 +41,15 @@ class CollectorProtocol:
                 `message` property will be handed back to the sender
                 inside of a :class:`notifyme.messages.ErrorMessage`.
 
+            allowed_resources(list): List of resources the connected client
+                is allowed to push to.
+
         """
         if type(notification_callback) is not FunctionType:
             raise ValueError("notification_callback has to be callable!")
 
         self.notification_callback = notification_callback
+        self.allowed_resources = allowed_resources
         self._state = CollectorProtocol.ReceiveNotificationState(self)
 
     def __call__(self, in_msg):
@@ -71,6 +75,10 @@ class CollectorProtocol:
             if type(in_msg) is not NotificationMessage:
                 return (self, ErrorMessage("This node only accepts \
                                            NotificationMessages"))
+
+            if in_msg.data['resource'] not in self.context.allowed_resources:
+                return self, ErrorMessage("Not allowed to post in this resource")
+
             try:
                 self.context.notification_callback(in_msg)
             except ValueError as e:
