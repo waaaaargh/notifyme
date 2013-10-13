@@ -16,9 +16,17 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from notifyme.statemachine import SendingProtocolState, ReceivingProtocolState
+from threading import Thread, Lock
+from socket import socket, AF_INET, SOCK_STREAM
+from hashlib import sha256
+
+from OpenSSL import SSL, crypto
+
+from notifyme.statemachine import SendingProtocolState, \
+    ReceivingProtocolState, ProtocolStateMachine
 from notifyme.messages import PublishMessage, SubscribeMessage, \
-    ConfirmationMessage, ErrorMessage
+    ConfirmationMessage, ErrorMessage, WrappedProtocolMessage, \
+    NotificationMessage
 
 
 class PublisherProtocol:
@@ -34,6 +42,7 @@ class PublisherProtocol:
                 is going to publish.
         """
         self.published_resources = published_resources
+        self.subscribed_resources = []
         self._state = PublisherProtocol.SendPublishMessageState(self)
 
     def __call__(self, in_msg):
@@ -82,5 +91,155 @@ class PublisherProtocol:
             else:
                 out_msg = ConfirmationMessage(confirmed_resources=
                                               confirmed_resources)
+                self.context.subscribed_resources = confirmed_resources
 
             return (self, out_msg)
+
+
+class SimplePublisher(Thread):
+    """
+    Handles a connection from a subscriber
+    """
+    def __init__(self, connection, published_resources):
+        """
+        Initialize connection and protocol
+
+        Args:
+            connection (:class:`socket.connection`):
+                Connection throug which to send and receive data
+            published_resources (list):
+                List of resources the client may subscribe to.
+        """
+        Thread.__init__(self)
+        self.running = True
+        self.lock = Lock()
+        self.connection = connection
+        self.published_resources = published_resources
+        self._protocol = ProtocolStateMachine(initial_state=PublisherProtocol
+                                              .SendPublishMessageState(self))
+
+    def send_message(self, message):
+        """
+        Send a message to the connected peer
+
+        Args:
+            message(:class:`notifyme.messages.ProtocolMessage`):
+                message to be sent.
+        """
+        wrapped_message = WrappedProtocolMessage(message)
+        self.lock.acquire()
+        self.connection.send(wrapped_message.text.encode('utf-8'))
+        self.lock.release()
+
+    def receive_message(self):
+        """
+        Receives a message from the connected Peer, blocks as long
+        as it doesn't receive any.
+
+        Returns:
+            :class:`notifyme.messages.ProtocolMessage`
+        """
+        received_bytes = self.connection.recv(1024)
+        received_string = received_bytes.decode('utf-8')
+        in_msg = WrappedProtocolMessage.parse(received_string)
+        return in_msg
+
+    def run(self):
+        """
+        Handle the communication with a peer.
+        """
+        while self.running:
+            try:
+                if self._protocol.wait_for_input:
+                    in_msg = self.receive_message()
+                else:
+                    in_msg = None
+                out_msg = self._protocol(in_msg)
+            except Exception as e:
+                out_msg = ErrorMessage(e.args[0])
+            if out_msg is not None:
+                try:
+                    self.send_message(out_msg)
+                except Exception as e:
+                    self.running = False
+
+    def send_notification(self, notification):
+        """
+        Send out a notification message to the peer.
+        """
+        notification_message = NotificationMessage(notification)
+        wrapped_notification_message = WrappedProtocolMessage(
+            message=notification_message)
+        self.send_message(message=wrapped_notification_message)
+
+
+class PublisherDispatcher(Thread):
+    """
+    Server Thread that spawns a new `SimplePublisher` everytime a
+    Client with a valid client certificate connects.
+    """
+
+    class VerificationHelper:
+        def __init__(self, permissions):
+            self.permissions = permissions
+            self.permitted_resources = []
+            self.in_use = Lock()
+
+        def reset(self):
+            self.permitted_resources = []
+
+        def __call__(self, conn, cert, a, b, c):
+            # determine certificate sha256 hash
+            cert_hash = sha256()
+            cert_hash.update(crypto.dump_certificate(1, cert))
+            cert_hashdigest = cert_hash.hexdigest()
+
+            # check against permissions table
+            res = list(filter(lambda x: x[0] == cert_hashdigest, self.permissions))
+            if len(res) < 1:
+                return False
+            else:
+                self.permitted_resources = res[0][1]
+                return True
+
+    def __init__(self, address, port, keyfile, certfile, permissions_table):
+        Thread.__init__(self)
+        self.running = True
+        self.permissions = permissions_table
+        self._verifier = PublisherDispatcher.VerificationHelper(
+            permissions=permissions_table)
+        self.address = address
+        self.port = port
+
+        # initialize SSL Context
+        self._ssl_context = SSL.Context(SSL.TLSv1_METHOD)
+        self._ssl_context.use_privatekey_file(keyfile)
+        self._ssl_context.use_certificate_file(certfile)
+        self._ssl_context.set_verify(SSL.VERIFY_PEER | SSL.VERIFY_CLIENT_ONCE,
+                                     self._verifier)
+
+    def run(self):
+        self._server = SSL.Connection(self._ssl_context,
+                                      socket(AF_INET, SOCK_STREAM))
+        self._server.bind((self.address, self.port))
+        self._server.listen(5)
+
+        while self.running:
+            try:
+                conn, addr = self._server.accept()
+                self._verifier.in_use.acquire()
+                conn.do_handshake()
+                permitted_resources = self._verifier.permitted_resources
+                self._verifier.reset()
+                self._verifier.in_use.release()
+                # start Publisher Thread
+                pub = SimplePublisher(connection=conn,
+                                      published_resources=permitted_resources)
+                pub.daemon = True
+                pub.start()
+            except KeyboardInterrupt:
+                self.running = False
+            except SSL.Error:
+                self._verifier.reset()
+                self._verifier.in_use.release()
+                pass # do nothing, a log message perhaps.
