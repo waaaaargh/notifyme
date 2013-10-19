@@ -16,6 +16,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import logging
 from threading import Thread, Lock
 from socket import socket, AF_INET, SOCK_STREAM
 from hashlib import sha256
@@ -60,6 +61,7 @@ class PublisherProtocol:
 
     class SendPublishMessageState(SendingProtocolState):
         def __call__(self):
+            logging.debug("Sending PublishMessage")
             return PublisherProtocol.ReceiveSubscriptionMessageState(
                 self.context), \
                 PublishMessage(published_resources=
@@ -76,6 +78,7 @@ class PublisherProtocol:
             """
             if type(in_msg) is not SubscribeMessage:
                 return ErrorMessage("Unexpected Message")
+            logging.debug("Received SubscribeMessage")
             confirmed_resources = []
             unavailable_resources = []
             # check if subscribed resources are valid.
@@ -86,6 +89,8 @@ class PublisherProtocol:
                     unavailable_resources += [resource]
 
             if len(unavailable_resources) > 0:
+                logging.debug("The Client requested some unavailable \
+                        resources")
                 out_msg = ErrorMessage(error_message=
                                        "Some resources were unavailable")
             else:
@@ -100,7 +105,7 @@ class SimplePublisher(Thread):
     """
     Handles a connection from a subscriber
     """
-    def __init__(self, connection, published_resources):
+    def __init__(self, connection, published_resources, dispatcher):
         """
         Initialize connection and protocol
 
@@ -109,12 +114,16 @@ class SimplePublisher(Thread):
                 Connection throug which to send and receive data
             published_resources (list):
                 List of resources the client may subscribe to.
+            dispatcher (:class:`notifyme.publisher.PublisherDispatcher`):
+                dispatcher that spawned this publisher.
         """
         Thread.__init__(self)
         self.running = True
         self.lock = Lock()
         self.connection = connection
         self.published_resources = published_resources
+        self.subscribed_resources = []
+        self.dispatcher = dispatcher
         self._protocol = ProtocolStateMachine(initial_state=PublisherProtocol
                                               .SendPublishMessageState(self))
 
@@ -162,15 +171,14 @@ class SimplePublisher(Thread):
                     self.send_message(out_msg)
                 except Exception as e:
                     self.running = False
+        self.dispatcher.active_connections.remove(self)
 
     def send_notification(self, notification):
         """
         Send out a notification message to the peer.
         """
         notification_message = NotificationMessage(notification)
-        wrapped_notification_message = WrappedProtocolMessage(
-            message=notification_message)
-        self.send_message(message=wrapped_notification_message)
+        self.send_message(message=notification_message)
 
 
 class PublisherDispatcher(Thread):
@@ -195,19 +203,35 @@ class PublisherDispatcher(Thread):
             cert_hashdigest = cert_hash.hexdigest()
 
             # check against permissions table
-            res = list(filter(lambda x: x[0] == cert_hashdigest, self.permissions))
+            res = list(filter(lambda x: x[0] == cert_hashdigest,
+                              self.permissions))
             if len(res) < 1:
                 return False
+                logging.debug("found unknown cert hash")
             else:
                 self.permitted_resources = res[0][1]
+                logging.debug("found known cert hash")
                 return True
 
     def __init__(self, address, port, keyfile, certfile, permissions_table):
+        """
+        Initialize server dispatcher for publishers
+
+        Args:
+            address (string): Address to bind to
+            port (int): listen on this port
+            keyfile (string): path to keyfile
+            certfile (string): path to certfile
+            permissions_table (list): list of tuples with sha256 hashes of the
+                client's certificate and the list of the resorces the client
+                may subscribe to.
+        """
         Thread.__init__(self)
         self.running = True
         self.permissions = permissions_table
         self._verifier = PublisherDispatcher.VerificationHelper(
             permissions=permissions_table)
+        self.active_connections = []
         self.address = address
         self.port = port
 
@@ -223,10 +247,12 @@ class PublisherDispatcher(Thread):
                                       socket(AF_INET, SOCK_STREAM))
         self._server.bind((self.address, self.port))
         self._server.listen(5)
+        logging.debug("starting publisherDispatcher")
 
         while self.running:
             try:
                 conn, addr = self._server.accept()
+                logging.debug("incoming connection from %s" % str(addr))
                 self._verifier.in_use.acquire()
                 conn.do_handshake()
                 permitted_resources = self._verifier.permitted_resources
@@ -234,12 +260,28 @@ class PublisherDispatcher(Thread):
                 self._verifier.in_use.release()
                 # start Publisher Thread
                 pub = SimplePublisher(connection=conn,
-                                      published_resources=permitted_resources)
+                                      published_resources=permitted_resources,
+                                      dispatcher=self)
                 pub.daemon = True
+                self.active_connections.append(pub)
                 pub.start()
             except KeyboardInterrupt:
                 self.running = False
             except SSL.Error:
                 self._verifier.reset()
                 self._verifier.in_use.release()
-                pass # do nothing, a log message perhaps.
+
+    def send_notification(self, notification):
+        """
+        Send notifications to connected nodes that have subscribed to matching
+        resources
+
+        Args:
+            notification(:class:`notifyme.notification.Notification`):
+                Notification to send.
+        """
+
+        for p in self.active_connections:
+            if notification.resource in p.subscribed_resources:
+                logging.debug("sending message...")
+                p.send_notification(notification)
