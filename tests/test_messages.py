@@ -1,7 +1,7 @@
 from unittest import TestCase
 
 from notifyme.messages import *
-
+from notifyme.notification import Notification
 
 class TestMessageCreation(TestCase):
     def test_publish_message(self):
@@ -41,9 +41,12 @@ class TestMessageCreation(TestCase):
         self.assertIsInstance(e, ErrorMessage)
 
     def test_notification_message(self):
-        n = NotificationMessage(notification_dict={})
-        self.assertIsInstance(n, ProtocolMessage)
-        self.assertIsInstance(n, NotificationMessage)
+        n = Notification(data={}, subject='test', urgency=23,
+                         resource='/test')
+        nm = NotificationMessage(notification=n)
+        self.assertIsInstance(nm, ProtocolMessage)
+        self.assertIsInstance(nm, NotificationMessage)
+        self.assertEquals(n.subject, nm.data['subject'])
 
 
 class TestMessageParsing(TestCase):
@@ -72,7 +75,9 @@ class TestMessageParsing(TestCase):
         self.assertDictEqual(e.data, e_new.data)
 
     def test_notification_message(self):
-        n = NotificationMessage(notification_dict={})
+        notification = Notification(resource='test', urgency=88, subject='lel',
+                                    data={})
+        n = NotificationMessage(notification)
         w = WrappedProtocolMessage(message=n)
         n_new = WrappedProtocolMessage.parse(w.text)
         self.assertDictEqual(n.data, n_new.data)

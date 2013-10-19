@@ -17,10 +17,10 @@ class TestCollectorProtocol(TestCase):
         c = CollectorProtocol(notification_callback=test_callback,
                               allowed_resources=['/lel'])
         n = Notification(subject='lel', resource='/lel', urgency=88)
-        r = c(NotificationMessage(n.to_dict))
+        r = c(NotificationMessage(n))
         self.assertIsNone(r)
         n = Notification(subject='lel', resource='/asdf', urgency=88)
-        r = c(NotificationMessage(n.to_dict))
+        r = c(NotificationMessage(n))
         self.assertIsInstance(r, ErrorMessage)
         r = c(ErrorMessage("this should get me an error"))
         self.assertIs(type(r), ErrorMessage)

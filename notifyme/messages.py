@@ -115,13 +115,21 @@ class NotificationMessage(ProtocolMessage):
     """
     Send notifications
     """
-    def __init__(self, notification_dict):
+    def __init__(self, notification, notification_dict=None):
         ProtocolMessage.__init__(self)
-        self.data = notification_dict
+        if notification is not None and notification_dict is None:
+            self.data = {
+                'subject': notification.subject,
+                'urgency': notification.urgency,
+                'data': notification.data,
+                'resource': notification.resource
+            }
+        else:
+            self.data = notification_dict
 
     @classmethod
     def from_dict(cls, message_dict):
-        return NotificationMessage(message_dict)
+        return NotificationMessage(None, notification_dict=message_dict)
 
 
 class WrappedProtocolMessage:
@@ -164,9 +172,9 @@ class WrappedProtocolMessage:
         """
         try:
             message_dict = json.loads(received_bytes)
-            if type(message_dict) is not dict:
-                raise ValueError
         except ValueError:
+            raise Exception("Error Parsing Message")
+        if type(message_dict) is not dict:
             raise Exception("Error Parsing Message")
 
         if message_dict['message_type'] == 'PublishMessage':

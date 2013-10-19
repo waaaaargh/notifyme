@@ -7,6 +7,7 @@ from unittest import TestCase
 from notifyme.subscriber import SubscriberProtocol
 from notifyme.messages import PublishMessage, SubscribeMessage,\
     ConfirmationMessage, NotificationMessage, ErrorMessage
+from notifyme.notification import Notification
 
 
 class TestSubscriberProtocol(TestCase):
@@ -28,6 +29,8 @@ class TestSubscriberProtocol(TestCase):
         self.assertIsInstance(out_msg, SubscribeMessage)
         out_msg = p(ConfirmationMessage(confirmed_resources=['/lel']))
         self.assertIsNone(out_msg)
-        out_msg = p(NotificationMessage(notification_dict={}))
+        n = Notification(resource='/lel', data=None, urgency=88,
+                         subject='lelelele')
+        out_msg = p(NotificationMessage(notification=n))
         self.assertIsNone(out_msg)
         self.assertIsNotNone(ctest.called)
