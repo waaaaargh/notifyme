@@ -60,6 +60,9 @@ class PublisherProtocol:
         return out_msg
 
     class SendPublishMessageState(SendingProtocolState):
+        """
+        State that sends a PublishMessage
+        """
         def __call__(self):
             logging.debug("Sending PublishMessage")
             return PublisherProtocol.ReceiveSubscriptionMessageState(
@@ -68,6 +71,9 @@ class PublisherProtocol:
                                self.context.published_resources)
 
     class ReceiveSubscriptionMessageState(ReceivingProtocolState):
+        """
+        State that expects SubscribeMessages.
+        """
         def __call__(self, in_msg):
             """
             Handle incoming SubscribedMessage
@@ -188,15 +194,35 @@ class PublisherDispatcher(Thread):
     """
 
     class VerificationHelper:
+        """
+        Helper that serves as verify_callback for OpenSSL
+        """
         def __init__(self, permissions):
+            """
+            Initialize Helper and set permissions. Saves the permitted
+            resources of the incoming certificate in `permitted_resources`.
+            call `reset()` before you re-use it!
+
+            Args:
+                permissions: list of tuples, each consisting of the
+                    hex representation of a sha256 hash as a string
+                    and a list of allowed resources, each as a string.
+            """
             self.permissions = permissions
             self.permitted_resources = []
             self.in_use = Lock()
 
+
         def reset(self):
+            """
+            Resets the object, call before reuse!
+            """
             self.permitted_resources = []
 
         def __call__(self, conn, cert, a, b, c):
+            """
+            Actually perform the verification
+            """
             # determine certificate sha256 hash
             cert_hash = sha256()
             cert_hash.update(crypto.dump_certificate(1, cert))
