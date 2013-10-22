@@ -43,6 +43,7 @@ from threading import Thread
 
 from notifyme.notification import Notification
 from notifyme.publisher import PublisherDispatcher
+from notifyme.collector import CollectorDispatcher
 
 
 def load_config_from_file(file):
@@ -104,7 +105,15 @@ if __name__ == '__main__':
     pub.daemon = True
     pub.start()
 
-    t = TestNotificationManager(publisher_dispatcher=pub)
-    t.start()
+    def test_cb(n):
+        print("lel")
 
     # start collector dispatcher
+    col = CollectorDispatcher(address='localhost',
+                              port=config['collector']['port'],
+                              keyfile=config['collector']['keyfile'],
+                              certfile=config['collector']['certfile'],
+                              permissions_table=collector_permissions,
+                              callback=test_cb)
+
+    col.start()
