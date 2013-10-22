@@ -1,0 +1,24 @@
+publisher:
+        address:    localhost
+        port:       10023
+        keyfile:    lel.pem
+        certfile:   lel.pem
+
+        permissions:
+                - hash:     2fd5734441c05f86712d7e3d1b4f0fed93489ce134b9ef7dfd9669bf85e4c2e4
+                  resources:
+                    - /foo
+                    - /bar
+
+
+collector:
+        address:    localhost
+        port:       10024
+        keyfile:    lel.pem
+        certfile:   lel.pem
+
+        permissions:
+                - hash:     xyz
+                  resources:
+                    - /foo
+                    - /bar
