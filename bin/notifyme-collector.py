@@ -23,6 +23,7 @@ logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.DEBUG)
 
 import sys
 from os.path import abspath, dirname, join, exists
+from socket import SHUT_RDWR
 sys.path.append(abspath(join(dirname(__file__), '..')))
 import argparse
 
@@ -102,11 +103,10 @@ if __name__ == '__main__':
                               keyfile=config['publisher']['keyfile'],
                               certfile=config['publisher']['certfile'],
                               permissions_table=publisher_permissions)
-    pub.daemon = True
-    pub.start()
 
     def test_cb(n):
         print("lel")
+
 
     # start collector dispatcher
     col = CollectorDispatcher(address='localhost',
@@ -116,4 +116,19 @@ if __name__ == '__main__':
                               permissions_table=collector_permissions,
                               callback=test_cb)
 
+    class SigintHandler:
+        def __init__(self, col_dispatcher, pub_dispatcher):
+            self.col_dispatcher = col_dispatcher
+            self.pub_dispatcher = pub_dispatcher
+
+        def __call__(self, signum, frame):
+            self.col_dispatcher.running = False
+            self.col_dispatcher._server.sock_shutdown(SHUT_RDWR)
+            self.pub_dispatcher.running = False
+            self.pub_dispatcher._server.sock_shutdown(SHUT_RDWR)
+
+    import signal
+    signal.signal(signal.SIGINT, SigintHandler(pub, col))
+
+    pub.start()
     col.start()

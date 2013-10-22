@@ -153,6 +153,7 @@ class SimpleCollector(Thread):
                 else:
                     in_msg = None
                 out_msg = self._protocol(in_msg)
+                self.running = False
             except Exception as e:
                 out_msg = ErrorMessage(e.args[0])
             if out_msg is not None:
@@ -259,7 +260,6 @@ class CollectorDispatcher(Thread):
                 col = SimpleCollector(connection=conn,
                                       allowed_resources=allowed_resources,
                                       notification_callback=self.callback)
-                col.daemon = False
                 col.start()
 
             except KeyboardInterrupt:
@@ -267,3 +267,5 @@ class CollectorDispatcher(Thread):
             except SSL.Error:
                 self._verifier.reset()
                 self._verifier.in_use.release()
+            except OSError:
+                pass

@@ -288,14 +288,17 @@ class PublisherDispatcher(Thread):
                 pub = SimplePublisher(connection=conn,
                                       published_resources=permitted_resources,
                                       dispatcher=self)
-                pub.daemon = True
                 self.active_connections.append(pub)
                 pub.start()
-            except KeyboardInterrupt:
+            except (SystemExit, KeyboardInterrupt):
+                import pdb; pdb.set_trace()
+                logging.debug("Shutting down, thanks for flying notifyme!")
                 self.running = False
             except SSL.Error:
                 self._verifier.reset()
                 self._verifier.in_use.release()
+            except OSError:
+                pass
 
     def send_notification(self, notification):
         """
