@@ -27,7 +27,7 @@ your network would look like this:
 ```
                  +-------------+
                  | IRC bouncer |
-                 | (publisher) |
+                 | (pushclient)|
                  +-------------+
                         |
                         |
@@ -36,6 +36,17 @@ your network would look like this:
                        \|/
                  +-------------+
                  | notifymed   |
+                 | (collector/ |
+                 |  publisher) |
+                 +-------------+
+                        |
+                        |
+                        |
+                        |
+                       \|/
+                 +-------------+
+                 | desktop     |
+                 |      client |
                  | (subscriber)|
                  +-------------+  
 ```
@@ -49,16 +60,16 @@ this case, the whole setup looks like this:
 ```
     +----------------------+             +-------------+
     | @hackerspace twitter |             | IRC bouncer |
-    | (publisher)          |             | (publisher) |
+    | (pushclient          |             | (pushclient)|
     +----------------------+             +-------------+
                 |                              |
                 +--------------+               |
                                |               |
                               \|/              |
-                       +---------------+       |
-                       | notifications |       |
-                       | (collector)   |       |
-                       +---------------+       |
+                       +---------------+<------+
+                       | notifications |
+                       | (collector)   |
+                       +---------------+-------+
                                |               |
                                |               |
                                |               |
@@ -76,65 +87,16 @@ The important thing here is that your friend can only read the notifications
 that come from the Twitter account, whereas you also can read the notifications
 from your IRC bouncer.
 
-So far, we had the following roles in our networks:
-* a publisher that creates notification and feeds them into the network
-* a subscriber that wants certain types of messages and gets them eventually
-* a collector that simultaneously acts as subscriber and publisher and does some
-  clever stuff in between, e.g. aggregate notifications, send out emails
-  and so on.
 
-Data model
+Components
 ----------
-
-the main datatype in this model is of course the notification.
-
-messages have:
-* a `hostname` that identifies the machine which produced this notification
-* a `resource`, which identifies the service that produced this notification
-* a `time` field, that contains a unix timestamp indicating the time the
-  notification was initially created.
-* a `urgency`, an integer in the range of `0 <= urgency <= 99`
-* a `subject`, a up to 256 characters long string that in few words describes
-  what is going on and
-* `data`, a free-form JSON object that has more information about the
-  notification.
-
-resources are part of a tree structure. There are two types of resources:
-* sources, which can only be leaves in the resource structure and
-* directories which can be leaves and parent nodes to sources and other
-  directories.
-
-Directories recursively aggregate all of their children.
-
-An example tree structure might look like this:
-```
-weltraumpflege.org
-+-- ~johannes
-    +-- IRC
-    +-- RSS
-    +-- XMPP
-+-- errorlogs
-    +-- webapp1
-    +-- webapp2
-    ...
-```
-
-In this example, listing all messages from the resource `weltraumpflege.org/~johannes/`
-would give me all the messages my IRC bouncer, my RSS aggregator and my XMPP
-client produce.
-
-Listing `weltraumpflege.org/errorlogs/webapp1` would give me only the errorlog
-of `webapp1`.
-
-The resource tree is constructed on the side of the subscriber or the 
-collector.
-
-Network Protocol
-----------------
-
-Messages are sent over the wire or the air as JSON objects wrapped in another
-JSON Object for transport
-
-The transport wrapper object contains the following information:
-* `message_type`: Type of the message as String (up to 32 Characters)
-* `message`: The message object as a String
+There are a few core components to a notifyme setup:
+* The **publisher** can send notifications to subscribers. A publisher may 
+  generate notifications on itself, or just forward or aggregate notifications
+  it gets from other components or programs.
+* In some situations opening a socket on a machine is not a viable option due
+  to network and/or machine restrictions. That's where the **collector** comes
+  in. It receives messages from a simple client prgram that processes or
+  forwards them.
+* The **push client** sends messages to a collector.
+* The **subscriber** registers with a publisher and listens to messages.
