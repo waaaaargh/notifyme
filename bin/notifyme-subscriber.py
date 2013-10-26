@@ -22,12 +22,22 @@ from os.path import abspath, dirname, join, exists
 sys.path.append(abspath(join(dirname(__file__), '..')))
 import logging
 
+from time import sleep
 from notifyme.subscriber import SimpleSubscriber
 
 from argparse import ArgumentParser
 
-def test_cb(x):
-    print("lel")
+
+def notification_callback(notification):
+    """
+    This function is called whenever a notification comes in.
+
+    Args:
+        notification(:class:`notifyme.notification.Notification`):
+            Notification that has been received from the publisher.
+    """
+    print("NOTIFICATION: %s" % notification.subject) 
+
 
 if __name__ == '__main__':
     parser = ArgumentParser(description="Notifyme subscriber component")
@@ -48,6 +58,16 @@ if __name__ == '__main__':
                                   port=int(args.portnumber),
                                   certfile=args.certificate,
                                   keyfile=args.key,
-                                  notification_callback=test_cb,
+                                  notification_callback=notification_callback,
                                   subscribed_resources=args.resource)
-    subscriber.run()
+    subscriber.daemon = True
+    try:
+        subscriber.run()
+    except Exception as e:
+        sys.exit(1)
+    try:
+        while True:
+            sleep(1)
+    except KeyboardInterrupt:
+        logging.debug("Caught KeyboardInterrupt, exitting...")
+        subscriber.running = False
