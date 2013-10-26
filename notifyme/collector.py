@@ -85,7 +85,7 @@ class CollectorProtocol:
                     ErrorMessage("Not allowed to post in this resource")
 
             try:
-                self.context.notification_callback(in_msg)
+                self.context.notification_callback(in_msg.notification)
             except ValueError as e:
                 return (self, ErrorMessage(e.message))
 

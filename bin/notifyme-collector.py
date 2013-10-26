@@ -23,8 +23,8 @@ logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.DEBUG)
 
 import sys
 from os.path import abspath, dirname, join, exists
-from socket import SHUT_RDWR
 sys.path.append(abspath(join(dirname(__file__), '..')))
+
 import argparse
 
 try:
@@ -40,9 +40,7 @@ except ImportError as e:
 
 
 from time import sleep
-from threading import Thread
 
-from notifyme.notification import Notification
 from notifyme.publisher import PublisherDispatcher
 from notifyme.collector import CollectorDispatcher
 
@@ -52,26 +50,15 @@ def load_config_from_file(file):
         return yaml.safe_load(f)
 
 
-class TestNotificationManager(Thread):
+class NotificationManager:
     def __init__(self, publisher_dispatcher):
-        """
-        Args:
-            publisher_dispatcher:
-                Dispatcher that knows the publisher threads
-        """
-        Thread.__init__(self)
-        self.dispatcher = publisher_dispatcher
+        self.publisher_dispatcher = publisher_dispatcher
 
     def __call__(self, notification):
-        self.dispatcher.send_notification(notification)
+        for sub in self.publisher_dispatcher.active_connections:
+            #TODO only send messages to matching resources
+            sub.send_notification(notification)
 
-    def run(self):
-        n = Notification(data=None, resource='/foo', urgency=88,
-                         subject='Test notification')
-        while True:
-            logging.debug("sending message...")
-            self(n)
-            sleep(5)
 
 if __name__ == '__main__':
     p = argparse.ArgumentParser(description=
@@ -104,31 +91,27 @@ if __name__ == '__main__':
                               certfile=config['publisher']['certfile'],
                               permissions_table=publisher_permissions)
 
-    def test_cb(n):
-        print("lel")
-
-
     # start collector dispatcher
     col = CollectorDispatcher(address='localhost',
                               port=config['collector']['port'],
                               keyfile=config['collector']['keyfile'],
                               certfile=config['collector']['certfile'],
                               permissions_table=collector_permissions,
-                              callback=test_cb)
+                              callback=NotificationManager(
+                                  publisher_dispatcher=pub)
+                              )
 
-    class SigintHandler:
-        def __init__(self, col_dispatcher, pub_dispatcher):
-            self.col_dispatcher = col_dispatcher
-            self.pub_dispatcher = pub_dispatcher
 
-        def __call__(self, signum, frame):
-            self.col_dispatcher.running = False
-            self.col_dispatcher._server.sock_shutdown(SHUT_RDWR)
-            self.pub_dispatcher.running = False
-            self.pub_dispatcher._server.sock_shutdown(SHUT_RDWR)
-
-    import signal
-    signal.signal(signal.SIGINT, SigintHandler(pub, col))
-
+    pub.daemon = True
     pub.start()
+    col.daemon = True
     col.start()
+
+    # this is necessary to handle SIGINT correctly
+    try:
+        while True:
+            sleep(1)
+    except KeyboardInterrupt:
+        logging.debug("Caught SIGINT, Quitting.")
+        pub.running = False
+        col.running = False

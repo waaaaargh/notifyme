@@ -95,8 +95,8 @@ class PublisherProtocol:
                     unavailable_resources += [resource]
 
             if len(unavailable_resources) > 0:
-                logging.debug("The Client requested some unavailable \
-                        resources")
+                logging.debug(
+                    "The Client requested some unavailable resources")
                 out_msg = ErrorMessage(error_message=
                                        "Some resources were unavailable")
             else:
@@ -212,7 +212,6 @@ class PublisherDispatcher(Thread):
             self.permitted_resources = []
             self.in_use = Lock()
 
-
         def reset(self):
             """
             Resets the object, call before reuse!
@@ -290,15 +289,9 @@ class PublisherDispatcher(Thread):
                                       dispatcher=self)
                 self.active_connections.append(pub)
                 pub.start()
-            except (SystemExit, KeyboardInterrupt):
-                import pdb; pdb.set_trace()
-                logging.debug("Shutting down, thanks for flying notifyme!")
-                self.running = False
             except SSL.Error:
                 self._verifier.reset()
                 self._verifier.in_use.release()
-            except OSError:
-                pass
 
     def send_notification(self, notification):
         """
