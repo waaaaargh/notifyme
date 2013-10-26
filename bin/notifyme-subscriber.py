@@ -36,7 +36,7 @@ def notification_callback(notification):
         notification(:class:`notifyme.notification.Notification`):
             Notification that has been received from the publisher.
     """
-    print("NOTIFICATION: %s" % notification.subject) 
+    print("NOTIFICATION: %s" % notification['subject']) 
 
 
 if __name__ == '__main__':
