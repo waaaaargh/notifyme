@@ -53,7 +53,6 @@ if __name__ == '__main__':
                         required=True, action='append')
     args = parser.parse_args()
     logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.DEBUG)
-    logging.debug("lel")
     subscriber = SimpleSubscriber(hostname=args.hostname,
                                   port=int(args.portnumber),
                                   certfile=args.certificate,
@@ -68,7 +67,7 @@ if __name__ == '__main__':
     except Exception as e:
         sys.exit(1)
     try:
-        while True:
+        while subscriber.running:
             sleep(1)
     except KeyboardInterrupt:
         logging.debug("Caught KeyboardInterrupt, exitting...")
