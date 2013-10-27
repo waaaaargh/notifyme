@@ -40,7 +40,7 @@ if __name__ == '__main__':
     parser.add_argument('-s', '--serverhash', help="sha256 hash of the\
                         server's certificate", required=False)
     parser.add_argument('-r', '--resource', help="push to resource",
-                        required=True, action='append')
+                        required=True)
     args = parser.parse_args()
 
     logging.basicConfig(format='%(levelname)s:%(message)s',
@@ -54,7 +54,7 @@ if __name__ == '__main__':
 
     notification = Notification(subject="test",
                                 urgency=88,
-                                resource='/foo',
+                                resource=args.resource,
                                 data=None)
 
     client.send_notification(notification)
