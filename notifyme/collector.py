@@ -27,6 +27,7 @@ from notifyme.statemachine import ReceivingProtocolState, \
     ProtocolStateMachine
 from notifyme.messages import NotificationMessage, ErrorMessage, \
     WrappedProtocolMessage
+from notifyme.resources import is_subresource
 
 
 class CollectorProtocol:
@@ -80,9 +81,19 @@ class CollectorProtocol:
                 return (self, ErrorMessage("This node only accepts \
                                            NotificationMessages"))
 
-            if in_msg.data['resource'] not in self.context.allowed_resources:
-                return self,\
-                    ErrorMessage("Not allowed to post in this resource")
+            #if not is_subresource(in_msg.data['resource'] not in self.context.allowed_resources:
+                #return self,\
+                    #ErrorMessage("Not allowed to post in this resource")
+
+            found = False
+            for res in self.context.allowed_resources:
+                if is_subresource(in_msg.data['resource'], res):
+                    found = True
+                    break
+
+            if not found:
+                logging.debug("Client tried to push in a resource without permission")
+                return (self, None)
 
             try:
                 self.context.notification_callback(in_msg.notification)

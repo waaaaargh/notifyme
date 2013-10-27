@@ -28,6 +28,7 @@ from notifyme.statemachine import SendingProtocolState, \
 from notifyme.messages import PublishMessage, SubscribeMessage, \
     ConfirmationMessage, ErrorMessage, WrappedProtocolMessage, \
     NotificationMessage
+from notifyme.resources import is_subresource
 
 
 class PublisherProtocol:
@@ -89,9 +90,13 @@ class PublisherProtocol:
             unavailable_resources = []
             # check if subscribed resources are valid.
             for resource in in_msg.data['subscribed_resources']:
-                if resource in self.context.published_resources:
-                    confirmed_resources += [resource]
-                else:
+                found = False
+                for p in self.context.published_resources:
+                    if is_subresource(resource, p):
+                        confirmed_resources += [resource]
+                        found = True
+                        break
+                if not found:
                     unavailable_resources += [resource]
 
             if len(unavailable_resources) > 0:
@@ -222,7 +227,6 @@ class PublisherDispatcher(Thread):
             """
             Actually perform the verification
             """
-            # determine certificate sha256 hash
             cert_hash = sha256()
             cert_hash.update(crypto.dump_certificate(1, cert))
             cert_hashdigest = cert_hash.hexdigest()
@@ -237,6 +241,7 @@ class PublisherDispatcher(Thread):
                 self.permitted_resources = res[0][1]
                 logging.debug("found known cert hash")
                 return True
+
 
     def __init__(self, address, port, keyfile, certfile, permissions_table):
         """

@@ -43,12 +43,12 @@ from time import sleep
 
 from notifyme.publisher import PublisherDispatcher
 from notifyme.collector import CollectorDispatcher
+from notifyme.resources import is_subresource
 
 
 def load_config_from_file(file):
     with open(file) as f:
         return yaml.safe_load(f)
-
 
 class NotificationManager:
     def __init__(self, publisher_dispatcher):
@@ -56,8 +56,9 @@ class NotificationManager:
 
     def __call__(self, notification):
         for sub in self.publisher_dispatcher.active_connections:
-            #TODO only send messages to matching resources
-            sub.send_notification(notification)
+            for res in sub.subscribed_resources:
+                if is_subresource(notification.resource, res):
+                    sub.send_notification(notification)
 
 
 if __name__ == '__main__':
