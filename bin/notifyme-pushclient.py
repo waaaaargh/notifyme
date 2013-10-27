@@ -37,10 +37,16 @@ if __name__ == '__main__':
                         required=True)
     parser.add_argument('-p', '--portnumber', help="publisher port",
                         required=True)
-    parser.add_argument('-s', '--serverhash', help="sha256 hash of the\
-                        server's certificate", required=False)
     parser.add_argument('-r', '--resource', help="push to resource",
                         required=True)
+    parser.add_argument('-s', '--subject', help="subject of ntoification",
+                        required=True)
+    parser.add_argument('-u', '--urgency', help="urgency of ntoification",
+                        required=False)
+    parser.add_argument('--serverhash', 
+                        help="sha256 hash of the server's cert",
+                        required=False)
+
     args = parser.parse_args()
 
     logging.basicConfig(format='%(levelname)s:%(message)s',
@@ -52,8 +58,11 @@ if __name__ == '__main__':
                            certfile=args.certificate,
                            serverhash=args.serverhash)
 
-    notification = Notification(subject="test",
-                                urgency=88,
+    if args.urgency == None:
+        urgency = 50
+
+    notification = Notification(subject=args.subject,
+                                urgency=urgency,
                                 resource=args.resource,
                                 data=None)
 
