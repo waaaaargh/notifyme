@@ -28,6 +28,7 @@ from notifyme.statemachine import SendingProtocolState, \
 from notifyme.messages import PublishMessage, SubscribeMessage, \
     ConfirmationMessage, ErrorMessage, WrappedProtocolMessage, \
     NotificationMessage
+from notifyme.resources import is_subresource
 
 
 class PublisherProtocol:
@@ -89,14 +90,18 @@ class PublisherProtocol:
             unavailable_resources = []
             # check if subscribed resources are valid.
             for resource in in_msg.data['subscribed_resources']:
-                if resource in self.context.published_resources:
-                    confirmed_resources += [resource]
-                else:
+                found = False
+                for p in self.context.published_resources:
+                    if is_subresource(resource, p):
+                        confirmed_resources += [resource]
+                        found = True
+                        break
+                if not found:
                     unavailable_resources += [resource]
 
             if len(unavailable_resources) > 0:
-                logging.debug("The Client requested some unavailable \
-                        resources")
+                logging.debug(
+                    "The Client requested some unavailable resources")
                 out_msg = ErrorMessage(error_message=
                                        "Some resources were unavailable")
             else:
@@ -212,7 +217,6 @@ class PublisherDispatcher(Thread):
             self.permitted_resources = []
             self.in_use = Lock()
 
-
         def reset(self):
             """
             Resets the object, call before reuse!
@@ -223,7 +227,6 @@ class PublisherDispatcher(Thread):
             """
             Actually perform the verification
             """
-            # determine certificate sha256 hash
             cert_hash = sha256()
             cert_hash.update(crypto.dump_certificate(1, cert))
             cert_hashdigest = cert_hash.hexdigest()
@@ -238,6 +241,7 @@ class PublisherDispatcher(Thread):
                 self.permitted_resources = res[0][1]
                 logging.debug("found known cert hash")
                 return True
+
 
     def __init__(self, address, port, keyfile, certfile, permissions_table):
         """
@@ -288,11 +292,8 @@ class PublisherDispatcher(Thread):
                 pub = SimplePublisher(connection=conn,
                                       published_resources=permitted_resources,
                                       dispatcher=self)
-                pub.daemon = True
                 self.active_connections.append(pub)
                 pub.start()
-            except KeyboardInterrupt:
-                self.running = False
             except SSL.Error:
                 self._verifier.reset()
                 self._verifier.in_use.release()

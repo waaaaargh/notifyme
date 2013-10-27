@@ -18,26 +18,14 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import sys
-from os.path import abspath, dirname, join, exists
+from os.path import abspath, dirname, join
 sys.path.append(abspath(join(dirname(__file__), '..')))
 import logging
 
-from time import sleep
-from notifyme.subscriber import SimpleSubscriber
+from notifyme.pushclient import SSLPushClient
+from notifyme.notification import Notification
 
 from argparse import ArgumentParser
-
-
-def notification_callback(notification):
-    """
-    This function is called whenever a notification comes in.
-
-    Args:
-        notification(:class:`notifyme.notification.Notification`):
-            Notification that has been received from the publisher.
-    """
-    print("NOTIFICATION: %s" % notification['subject']) 
-
 
 if __name__ == '__main__':
     parser = ArgumentParser(description="Notifyme subscriber component")
@@ -49,27 +37,24 @@ if __name__ == '__main__':
                         required=True)
     parser.add_argument('-p', '--portnumber', help="publisher port",
                         required=True)
-    parser.add_argument('-r', '--resource', help="subscribe to resource",
+    parser.add_argument('-s', '--serverhash', help="sha256 hash of the\
+                        server's certificate", required=False)
+    parser.add_argument('-r', '--resource', help="push to resource",
                         required=True, action='append')
     args = parser.parse_args()
-    logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.DEBUG)
-    logging.debug("lel")
-    subscriber = SimpleSubscriber(hostname=args.hostname,
-                                  port=int(args.portnumber),
-                                  certfile=args.certificate,
-                                  keyfile=args.key,
-                                  notification_callback=notification_callback,
-                                  subscribed_resources=args.resource)
-    subscriber.daemon = True
-    try:
-        subscriber.run()
-    except KeyboardInterrupt:
-        sys.exit(1)
-    except Exception as e:
-        sys.exit(1)
-    try:
-        while True:
-            sleep(1)
-    except KeyboardInterrupt:
-        logging.debug("Caught KeyboardInterrupt, exitting...")
-        subscriber.running = False
+
+    logging.basicConfig(format='%(levelname)s:%(message)s',
+                        level=logging.DEBUG)
+
+    client = SSLPushClient(hostname=args.hostname,
+                           port=int(args.portnumber),
+                           keyfile=args.key,
+                           certfile=args.certificate,
+                           serverhash=args.serverhash)
+
+    notification = Notification(subject="test",
+                                urgency=88,
+                                resource='/foo',
+                                data=None)
+
+    client.send_notification(notification)

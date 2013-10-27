@@ -18,6 +18,8 @@
 
 import json
 
+from notifyme.notification import Notification
+
 
 class ProtocolMessage:
     """
@@ -130,6 +132,13 @@ class NotificationMessage(ProtocolMessage):
     @classmethod
     def from_dict(cls, message_dict):
         return NotificationMessage(None, notification_dict=message_dict)
+
+    @property
+    def notification(self):
+        return Notification(data=self.data['data'],
+                            urgency=self.data['urgency'],
+                            subject=self.data['subject'],
+                            resource=self.data['resource'])
 
 
 class WrappedProtocolMessage:

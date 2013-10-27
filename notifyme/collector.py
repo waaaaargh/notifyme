@@ -16,20 +16,25 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from types import FunctionType
-from threading import Thread
+from hashlib import sha256
+import logging
+from threading import Thread, Lock
+from socket import socket, AF_INET, SOCK_STREAM
+
+from OpenSSL import SSL, crypto
 
 from notifyme.statemachine import ReceivingProtocolState, \
-    SendingProtocolState, ProtocolStateMachine
+    ProtocolStateMachine
 from notifyme.messages import NotificationMessage, ErrorMessage, \
     WrappedProtocolMessage
+from notifyme.resources import is_subresource
 
 
 class CollectorProtocol:
     """
     Protocol spoken by the collector
     """
-    def __init__(self, notification_callback, allowed_resources):
+    def __init__(self, allowed_resources, notification_callback):
         """
         Initialize a new CollectorProtocol
 
@@ -45,17 +50,17 @@ class CollectorProtocol:
                 is allowed to push to.
 
         """
-        if type(notification_callback) is not FunctionType:
+        if not callable(notification_callback):
             raise ValueError("notification_callback has to be callable!")
 
-        self.notification_callback = notification_callback
         self.allowed_resources = allowed_resources
+        self.notification_callback = notification_callback
+
         self._state = CollectorProtocol.ReceiveNotificationState(self)
 
     def __call__(self, in_msg):
         self._state, out_msg = self._state(in_msg)
-        if out_msg is not None:
-            return out_msg
+        return out_msg
 
     class ReceiveNotificationState(ReceivingProtocolState):
         """
@@ -76,11 +81,22 @@ class CollectorProtocol:
                 return (self, ErrorMessage("This node only accepts \
                                            NotificationMessages"))
 
-            if in_msg.data['resource'] not in self.context.allowed_resources:
-                return self, ErrorMessage("Not allowed to post in this resource")
+            #if not is_subresource(in_msg.data['resource'] not in self.context.allowed_resources:
+                #return self,\
+                    #ErrorMessage("Not allowed to post in this resource")
+
+            found = False
+            for res in self.context.allowed_resources:
+                if is_subresource(in_msg.data['resource'], res):
+                    found = True
+                    break
+
+            if not found:
+                logging.debug("Client tried to push in a resource without permission")
+                return (self, None)
 
             try:
-                self.context.notification_callback(in_msg)
+                self.context.notification_callback(in_msg.notification)
             except ValueError as e:
                 return (self, ErrorMessage(e.message))
 
@@ -91,7 +107,7 @@ class SimpleCollector(Thread):
     """
     Simple Collector, interacts with a :class:`socket.connection`
     """
-    def __init__(self, connection, notification_callback):
+    def __init__(self, connection, notification_callback, allowed_resources):
         """
         Create a new SimpleCollector that handles a `socket.connection`
 
@@ -108,8 +124,10 @@ class SimpleCollector(Thread):
         self.connection = connection
         self.running = True
         self.notification_callback = notification_callback
+        self.allowed_resources = allowed_resources
         self._protocol = ProtocolStateMachine(
-            initial_state=CollectorProtocol(self))
+            initial_state=CollectorProtocol.ReceiveNotificationState(self)
+        )
 
     def send_message(self, message):
         """
@@ -145,7 +163,8 @@ class SimpleCollector(Thread):
                     in_msg = self.receive_message()
                 else:
                     in_msg = None
-                out_msg = self.protocol(in_msg)
+                out_msg = self._protocol(in_msg)
+                self.running = False
             except Exception as e:
                 out_msg = ErrorMessage(e.args[0])
             if out_msg is not None:
@@ -153,3 +172,111 @@ class SimpleCollector(Thread):
                     self.send_message(out_msg)
                 except Exception as e:
                     self.running = False
+
+
+class CollectorDispatcher(Thread):
+    class VerificationHelper:
+        """
+        Helper that serves as verify_callback for OpenSSL
+        """
+        def __init__(self, permissions):
+            """
+            Initialize Helper and set permissions. Saves the permitted
+            resources of the incoming certificate in `permitted_resources`.
+            call `reset()` before you re-use it!
+
+            Args:
+                permissions: list of tuples, each consisting of the
+                    hex representation of a sha256 hash as a string
+                    and a list of allowed resources, each as a string.
+            """
+            self.permissions = permissions
+            self.permitted_resources = []
+            self.in_use = Lock()
+
+        def reset(self):
+            """
+            Resets the object, call before reuse!
+            """
+            self.permitted_resources = []
+
+        def __call__(self, conn, cert, a, b, c):
+            """
+            Actually perform the verification
+            """
+            # determine certificate sha256 hash
+            cert_hash = sha256()
+            cert_hash.update(crypto.dump_certificate(1, cert))
+            cert_hashdigest = cert_hash.hexdigest()
+
+            # check against permissions table
+            res = list(filter(lambda x: x[0] == cert_hashdigest,
+                              self.permissions))
+            if len(res) < 1:
+                logging.debug("found unknown cert hash")
+                return False
+            else:
+                self.permitted_resources = res[0][1]
+                logging.debug("found known cert hash")
+                return True
+
+    def __init__(self, address, port, keyfile, certfile, permissions_table,
+                 callback):
+        """
+        Initialize server dispatcher for publishers
+
+        Args:
+            address (string): Address to bind to
+            port (int): listen on this port
+            keyfile (string): path to keyfile
+            certfile (string): path to certfile
+            permissions_table (list): list of tuples with sha256 hashes of the
+                client's certificate and the list of the resorces the client
+                may push to.
+        """
+        Thread.__init__(self)
+        self.running = True
+        self.permissions = permissions_table
+        self._verifier = CollectorDispatcher.VerificationHelper(
+            permissions=permissions_table)
+        self.active_connections = []
+        self.address = address
+        self.port = port
+        self.callback = callback
+
+        # initialize SSL Context
+        self._ssl_context = SSL.Context(SSL.TLSv1_METHOD)
+        self._ssl_context.use_privatekey_file(keyfile)
+        self._ssl_context.use_certificate_file(certfile)
+        self._ssl_context.set_verify(SSL.VERIFY_PEER | SSL.VERIFY_CLIENT_ONCE,
+                                     self._verifier)
+
+    def run(self):
+        self._server = SSL.Connection(self._ssl_context,
+                                      socket(AF_INET, SOCK_STREAM))
+        self._server.bind((self.address, self.port))
+        self._server.listen(5)
+        logging.debug("starting CollectorDispatcher")
+
+        while self.running:
+            try:
+                conn, addr = self._server.accept()
+                logging.debug("incoming connection from %s" % str(addr))
+                self._verifier.in_use.acquire()
+                conn.do_handshake()
+                allowed_resources = self._verifier.permitted_resources
+                self._verifier.reset()
+                self._verifier.in_use.release()
+
+                col = SimpleCollector(connection=conn,
+                                      allowed_resources=allowed_resources,
+                                      notification_callback=self.callback)
+                col.start()
+
+            except KeyboardInterrupt:
+                self.running = False
+            except SSL.Error:
+                self._verifier.reset()
+                self._verifier.in_use.release()
+            except OSError:
+                pass

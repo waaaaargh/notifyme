@@ -114,6 +114,7 @@ class SimpleSubscriber(Thread):
                 else:
                     return True
 
+        self.running = True
         Thread.__init__(self)
         self.hostname = hostname
         self.port = port
@@ -153,10 +154,13 @@ class SimpleSubscriber(Thread):
         Returns:
             :class:`notifyme.messages.ProtocolMessage`
         """
-        received_bytes = self._sock.recv(1024)
-        received_string = received_bytes.decode('utf-8')
-        in_msg = WrappedProtocolMessage.parse(received_string)
-        return in_msg
+        try:
+            received_bytes = self._sock.recv(1024)
+            received_string = received_bytes.decode('utf-8')
+            in_msg = WrappedProtocolMessage.parse(received_string)
+            return in_msg
+        except SSL.WantReadError:
+            self.running = False
 
     def run(self):
         logging.debug("starting subscriber")
@@ -169,7 +173,8 @@ class SimpleSubscriber(Thread):
             self._sock.do_handshake()
         except SSL.Error:
             pass
-        while True:
+
+        while self.running:
             if self._protocol.wait_for_input:
                 in_msg = self.receive_message()
             else:

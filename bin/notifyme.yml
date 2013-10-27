@@ -1,0 +1,24 @@
+publisher:
+        address:    localhost
+        port:       10023
+        keyfile:    test_server.pem
+        certfile:   test_server.pem
+
+        permissions:
+                - hash:     e5340bbbc4966055852e1b44031c1d598a231d77f871a129ec2d52ff221fc910
+                  resources:
+                    - /foo
+                    - /bar
+
+
+collector:
+        address:    localhost
+        port:       10024
+        keyfile:    test_server.pem
+        certfile:   test_server.pem
+
+        permissions:
+                - hash:     e5340bbbc4966055852e1b44031c1d598a231d77f871a129ec2d52ff221fc910
+                  resources:
+                    - /foo
+                    - /bar
