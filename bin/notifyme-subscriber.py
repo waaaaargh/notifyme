@@ -63,6 +63,8 @@ if __name__ == '__main__':
     subscriber.daemon = True
     try:
         subscriber.run()
+    except KeyboardInterrupt:
+        sys.exit(1)
     except Exception as e:
         sys.exit(1)
     try:
