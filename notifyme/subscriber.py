@@ -167,9 +167,11 @@ class SimpleSubscriber(Thread):
         try:
             logging.debug("trying SSL Handshake")
             self._sock.do_handshake()
-        except SSL.Error:
-            pass
-        while True:
+        except SSL.Error as e:
+            logging.critical("Server rejected your certificate")
+            self.running = False
+
+        while self.running:
             if self._protocol.wait_for_input:
                 in_msg = self.receive_message()
             else:
