@@ -1,0 +1,14 @@
+Source: python3-notifyme
+Maintainer: Johannes Fürmann <johannes@weltraumpflege.org>
+Section: misc
+Priority: optional
+Standards-Version: 3.9.4
+Build-Depends: debhelper (>= 8), python3(>=3.0)
+X-Python3-Version: >=3.0.0
+
+Package: python3-notifyme
+Architecture: all
+Depends: ${python3:Depends},${misc:Depends},python3(>=3.0)
+Description: notification management and transport library
+ NotifyMe is a solution that helps you manage and transport notifications over
+ the internet.

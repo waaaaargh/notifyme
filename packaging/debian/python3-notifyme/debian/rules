@@ -1,0 +1,19 @@
+#!/usr/bin/make -f
+
+PYTBUILD_DESTDIR_python3=./debian/python3-notifyme
+
+
+%:
+	dh $@ --with python3 --buildsystem pybuild
+
+override_dh_python3:
+	@echo "*** USING setup.py TO BUILD NOTIFYME ***"
+	python3 setup.py install --install-layout=deb --prefix=./debian/python3-notifyme/usr
+	dh_python3 -p notifyme 
+	rm -r debian/python3-notifyme/usr/lib/python3/dist-packages/notifyme/__pycache__/
+	@echo "*** GENERATING MANPAGE ***"
+	mkdir -p debian/python3-notifyme/usr/share/man/man1
+	rst2man doc/source/notifyme-gencert.man.rst | gzip -9 > debian/python3-notifyme/usr/share/man/man1/notifyme-gencert.1.gz
+
+override_dh_auto_clean:
+	find . \( -name '*.py[co]' -or -name '\._*' -or -name '\.DS_Store' \) -delete
