@@ -1,0 +1,40 @@
+#!/usr/bin/make -f
+DH_VERBOSE=1
+DESTDIR=$(CURDIR)/debian/notifyme-collector
+
+build:
+
+clean: clean-inits
+	# kek
+
+install: build
+	dh_testdir
+	dh_testroot
+	dh_clean -k
+	dh_installdirs
+
+	# actually install
+	install bin/notifyme-collector ./debian/notifyme-collector/usr/bin/
+
+	# build and install manpage
+
+binary-arch:
+
+binary-indep: install
+	dh_testdir
+	dh_testroot
+	dh_installchangelogs debian/changelog
+	#dh_installdocs
+	#dh_installlogrotate
+	#dh_installinit -- defaults 99
+	#dh_installman man/*.1
+	dh_link
+	dh_compress
+	dh_fixperms
+	dh_installdeb
+	dh_gencontrol
+	dh_md5sums
+	dh_builddeb
+
+binary: binary-indep
+.PHONY: build clean binary-indep binary-arch binary install configure copy-inits clean-inits
