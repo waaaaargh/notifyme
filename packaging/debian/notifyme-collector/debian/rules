@@ -2,31 +2,34 @@
 DH_VERBOSE=1
 DESTDIR=$(CURDIR)/debian/notifyme-collector
 
+build-arch:
+
+build-indep:
+
 build:
 
 clean: clean-inits
-	# kek
+	dh_clean
 
 install: build
 	dh_testdir
 	dh_testroot
-	dh_clean -k
 	dh_installdirs
 
 	# actually install
 	install bin/notifyme-collector ./debian/notifyme-collector/usr/bin/
 
 	# build and install manpage
+	rst2man doc/source/notifyme-collector.man.rst | gzip -9 > ./debian/notifyme-collector/usr/share/man/man1/notifyme-collector.1.gz
+
 
 binary-arch:
 
 binary-indep: install
-	dh_testdir
-	dh_testroot
-	dh_installchangelogs debian/changelog
-	#dh_installdocs
+	dh_installchangelogs
+	dh_installdocs
 	#dh_installlogrotate
-	#dh_installinit -- defaults 99
+	dh_installinit -- defaults 99
 	#dh_installman man/*.1
 	dh_link
 	dh_compress
