@@ -8,7 +8,7 @@ X-Python3-Version: >=3.0.0
 
 Package: python3-notifyme
 Architecture: all
-Depends: ${python3:Depends},${misc:Depends},python3(>=3.0)
+Depends: ${python3:Depends},${misc:Depends},python3(>=3.0),python3-yaml,python3-openssl
 Description: notification management and transport library
  NotifyMe is a solution that helps you manage and transport notifications over
  the internet.
