@@ -1,0 +1,27 @@
+#!/bin/sh
+# postinst script for notifyme-server
+#
+# see dh_installdeb(1)
+
+set -e
+
+case "$1" in
+    configure)
+        # create server certificate
+        test -f /etc/notifyme/collector_cert.pem || notifyme-gencert -o /etc/notifyme/collector_cert.pem
+        # fix config file permissions
+        chown -R notifyme-collector /etc/notifyme
+    ;;
+
+    abort-upgrade|abort-remove|abort-deconfigure)
+    ;;
+
+    *)
+        echo "postinst called with unknown argument `$1`" >&2
+        exit 1
+    ;;
+esac
+
+#DEBHELPER#
+
+exit 0

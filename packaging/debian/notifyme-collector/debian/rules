@@ -18,6 +18,7 @@ install: build
 
 	# actually install
 	install bin/notifyme-collector ./debian/notifyme-collector/usr/bin/
+	install -m=600 collector.conf.yaml ./debian/notifyme-collector/etc/notifyme/
 
 	# build and install manpage
 	rst2man doc/source/notifyme-collector.man.rst | gzip -9 > ./debian/notifyme-collector/usr/share/man/man1/notifyme-collector.1.gz

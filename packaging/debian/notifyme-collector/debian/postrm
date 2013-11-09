@@ -20,11 +20,15 @@ set -e
 
 
 case "$1" in
-    purge|remove|disappear)
+    remove|disappear)
         echo "removing notifyme-collector user"
         userdel notifyme-collector
     ;;
     
+    purge)
+        rm -rf /etc/notifyme
+    ;;
+
     upgrade|failed-upgrade|abort-install|abort-upgrade)
     ;;
 

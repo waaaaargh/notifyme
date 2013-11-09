@@ -1,0 +1,11 @@
+# installed at /etc/default/notifyme-collector by the maintainer scripts
+
+#
+# This is a POSIX shell fragment
+#
+
+# Additional options that are passed to the Daemon.
+DAEMON_OPTS=""
+
+# Set this to true to start the daemon at boot
+START_DAEMON=true
