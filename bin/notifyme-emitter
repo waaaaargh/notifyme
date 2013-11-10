@@ -22,13 +22,13 @@ from os.path import abspath, dirname, join
 sys.path.append(abspath(join(dirname(__file__), '..')))
 import logging
 
-from notifyme.pushclient import SSLPushClient
+from notifyme.emitter import SSLEmitter
 from notifyme.notification import Notification
 
 from argparse import ArgumentParser
 
 if __name__ == '__main__':
-    parser = ArgumentParser(description="Notifyme subscriber component")
+    parser = ArgumentParser(description="Notifyme emitter component")
     parser.add_argument('-k', '--key', help="key file",
                         required=True)
     parser.add_argument('-c', '--certificate', help="certificate file",
@@ -52,7 +52,7 @@ if __name__ == '__main__':
     logging.basicConfig(format='%(levelname)s:%(message)s',
                         level=logging.DEBUG)
 
-    client = SSLPushClient(hostname=args.hostname,
+    client = SSLEmitter(hostname=args.hostname,
                            port=int(args.portnumber),
                            keyfile=args.key,
                            certfile=args.certificate,

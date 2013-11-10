@@ -25,7 +25,7 @@ from OpenSSL import SSL, crypto
 from notifyme.messages import NotificationMessage, WrappedProtocolMessage
 
 
-class SimplePushClient:
+class SimpleEmitter:
     def __init__(self, connection):
         self.connection = connection
 
@@ -36,7 +36,7 @@ class SimplePushClient:
         self.connection.sendall(wrapped_message.text.encode('utf-8'))
 
 
-class SSLPushClient:
+class SSLEmitter:
     def __init__(self, hostname, port, keyfile, certfile, serverhash=None):
         """
         Initialize a SSL Connection to a remote server
@@ -86,7 +86,7 @@ class SSLPushClient:
         except SSL.Error:
             pass
 
-        client = SimplePushClient(self._conn)
+        client = SimpleEmitter(self._conn)
         client.send_notification(notification)
 
     def shutdown(self):
