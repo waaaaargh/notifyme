@@ -30,32 +30,76 @@
 
     <div class="container">
       <div class="jumbotron">
-              <h1><img src="logo.png" width="150" height="150"><br>NotifyMe</h1>
-        <p class="lead">Notify me is a framework that facilitates transport and management of notifications in realtime</p>
-        <p><a class="btn btn-lg btn-success" href="http://getbootstrap.com/examples/jumbotron-narrow/#" role="button">Learn more...</a></p>
+	<center>
+	  <img src="logo.png" width="150" height="150">
+	  </center>
+
+              <h1>NotifyMe</h1>
+	      <center>
+	      <iframe src="github-btn.html?user=waaaaargh&repo=notifyme&type=watch&count=true" allowtransparency="true" frameborder="0" scrolling="0" width="110" height="20"></iframe>
+	      <iframe src="github-btn.html?user=waaaaargh&repo=notifyme&type=fork&count=true" allowtransparency="true" frameborder="0" scrolling="0" width="110" height="20"></iframe>
+	      <iframe src="github-btn.html?user=waaaaargh&repo=notifyme&type=follow&count=true" allowtransparency="true" frameborder="0" scrolling="0" width="180" height="20"></iframe>
+	      </center>
+        <p class="lead">
+	  Notifyme manages and transports notifications across the internet to wherever you want them.
+	</p>
       </div>
 
       <div class="row marketing">
         <div class="col-lg-6">
-          <h4>Subheading</h4>
-          <p>Donec id elit non mi porta gravida at eget metus. Maecenas faucibus mollis interdum.</p>
+          <h4>It's easy!</h4>
+          <p>
+	    Just install the core components and you're all set.
+	  </p>
 
-          <h4>Subheading</h4>
-          <p>Morbi leo risus, porta ac consectetur ac, vestibulum at eros. Cras mattis consectetur purus sit amet fermentum.</p>
+          <h4>It's flexible!</h4>
+	  <p>
+	    You can structure your notifications by source or category in resources, so you get only the notifications you want right now.
+	  </p>
 
-          <h4>Subheading</h4>
-          <p>Maecenas sed diam eget risus varius blandit sit amet non magna.</p>
+          <h4>It's extensible!</h4>
+          <p>
+	    NotifyMe is practically a python library, so implementing your own components is really easy. and it will get even better in the future.
+	  </p>
+	  
+	  <h4>It's free! (as in freedom)</h4>
+	  <p>
+	    NotifyMe is licenced under the GNU AGPLv3. This means you can use it and redistribute it, as long as you include a copy of the GNU AGPLv3.
+	  </p>
         </div>
 
         <div class="col-lg-6">
-          <h4>Subheading</h4>
-          <p>Donec id elit non mi porta gravida at eget metus. Maecenas faucibus mollis interdum.</p>
+          <h4>Core components</h4>
+          <p>
+	    NotifyMe is split in four core components:
+	    <ul>
+	      <li><b>collector</b> and <b>emitter</b>
+	      <li><b>publisher</b> and <b>subscriber</b>
+	    </ul>
+	    In the current implementation, collector and publisher run on the same machine.
+	  </p>
 
-          <h4>Subheading</h4>
-          <p>Morbi leo risus, porta ac consectetur ac, vestibulum at eros. Cras mattis consectetur purus sit amet fermentum.</p>
+          <h4>Here's how it works</h4>
+          <p>
+	    <ol>
+	      <li>the emitter generates a notification
+	      <li>the emitter forwards it to the collector.
+	      <li>the collector forwards it to the publisher
+	      <li>if a subscriber is connected, the publisher sends it there.
+	      <li>the subscriber displays the notification to the user.
+	    </ol>
 
-          <h4>Subheading</h4>
-          <p>Maecenas sed diam eget risus varius blandit sit amet non magna.</p>
+          <h4>Get it!</h4>
+          <p>Sorry, at the moment, there is no release available :(</p>
+	  
+	  <h4>Get involved!</h4>
+	  <p>
+	    <ul>
+	      <li>Get the <a href="http://github.com/waaaaargh/notifyme">source code</a></li>
+	      <li>Report a <a href="http://github.com/waaaaargh/notifyme/issues">bug</a></li>
+	      <li>Buy me a beer</li>
+	    </ul>
+	  </p>
         </div>
       </div>
 
