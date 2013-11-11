@@ -56,8 +56,6 @@ Configuration
 =============
 
 **Collector**
-  The collector is the only component that needs explicit configuration
-  at the moment.
   The YAML file that keeps the configuration has two main sections:
     * ``collector`` and
     * ``publisher``
@@ -89,3 +87,39 @@ Configuration
          - /bar
 
     You create certificates with the ``notifyme-gencert`` utility.
+
+**Subscriber**
+  The subscriber looks for a configuration file in 
+  ``~/.notifyme-collector.conf.yaml`` or expects a path to an alternative
+  location as a parameter.
+
+  Here's how a configuration file could look::
+
+    hostname:   localhost
+    port:       10023
+    certfile:   test_client.pem
+    keyfile:    test_client.pem
+    serverhash: deadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefderadbeefdeadbeef
+    resources:
+        - /foo
+        - /bar
+
+  So, what do the different parameters mean?
+
+  ``hostname``:
+    hostname of the publisher to which we want to connect
+
+  ``port``:
+    port number on which the publisher is listening
+
+  ``certfile``/``keyfile``:
+    path to the X509 Certificate/Key, ideally created by ``notifyme-gencert``.
+
+  ``serverhash``:
+    SHA256 sum of the server's SSL Certificate
+
+  ``resources``:
+    List of resources we want to subscribe to.
+
+  By the way, this example is shipped in the source tarball for your
+  convenience.
