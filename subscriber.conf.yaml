@@ -1,0 +1,8 @@
+hostname:   localhost
+port:       10023
+certfile:   test_client.pem
+keyfile:    test_client.pem
+serverhash: deadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefderadbeefdeadbeef
+resources:
+    - /foo
+    - /bar

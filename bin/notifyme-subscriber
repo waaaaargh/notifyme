@@ -18,7 +18,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import sys
-from os.path import abspath, dirname, join, exists
+from os.path import abspath, dirname, join, exists, expanduser
 sys.path.append(abspath(join(dirname(__file__), '..')))
 import logging
 
@@ -26,6 +26,10 @@ from time import sleep
 from notifyme.subscriber import SimpleSubscriber
 
 from argparse import ArgumentParser
+import yaml
+
+import notify2
+notify2.init('NotifyMe')
 
 
 def notification_callback(notification):
@@ -36,37 +40,42 @@ def notification_callback(notification):
         notification(:class:`notifyme.notification.Notification`):
             Notification that has been received from the publisher.
     """
-    print("NOTIFICATION: %s" % notification['subject']) 
+    n = notify2.Notification(notification['subject'])
+    n.show()
 
+def load_conf(filename):
+    with open(filename) as f:
+        return yaml.safe_load(f)
 
 if __name__ == '__main__':
-    parser = ArgumentParser(description="Notifyme subscriber component")
-    parser.add_argument('-k', '--key', help="key file",
-                        required=True)
-    parser.add_argument('-c', '--certificate', help="certificate file",
-                        required=True)
-    parser.add_argument('-n', '--hostname', help="publisher hostname",
-                        required=True)
-    parser.add_argument('-p', '--portnumber', help="publisher port",
-                        required=True)
-    parser.add_argument('-r', '--resource', help="subscribe to resource",
-                        required=True, action='append')
-    parser.add_argument('--server-hash', help="hash of the server's certificate")
-    args = parser.parse_args()
     logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.DEBUG)
-    subscriber = SimpleSubscriber(hostname=args.hostname,
-                                  port=int(args.portnumber),
-                                  certfile=args.certificate,
-                                  keyfile=args.key,
+    parser = ArgumentParser(description="Notifyme subscriber component")
+    parser.add_argument("-f", "--configfile", help="path to configfile")
+    args = parser.parse_args()
+    
+    try:
+        if args.configfile is not None:
+            config = load_conf(args.configfile)
+        else:
+            config = load_conf(expanduser("~/.notifyme-subscriber.conf.yaml"))
+    except FileNotFoundError:
+        logging.critical("Sorry, could not find your config file. exitting!")
+        sys.exit(1)
+
+    subscriber = SimpleSubscriber(hostname=config['hostname'],
+                                  port=int(config['port']),
+                                  certfile=config['certfile'],
+                                  keyfile=config['keyfile'],
                                   notification_callback=notification_callback,
-                                  subscribed_resources=args.resource,
-                                  serverhash=args.server_hash)
+                                  subscribed_resources=config['resources'],
+                                  serverhash=config['serverhash'])
     subscriber.daemon = True
     try:
         subscriber.run()
     except KeyboardInterrupt:
         sys.exit(1)
     except Exception as e:
+        logging.critical(str(e))
         sys.exit(1)
     try:
         while subscriber.running:
