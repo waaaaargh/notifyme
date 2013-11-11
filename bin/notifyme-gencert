@@ -55,12 +55,24 @@ def gen_cert(outfile):
 if __name__ == "__main__":
     parser = ArgumentParser(description="Create self-signed certificates for \
                             notifyme.")
-    parser.add_argument("-o", "--out", help="Write certificate and key to \
-                        this file.", required=True)
+    parser.add_argument("-g", "--generate", help="Write certificate and key to \
+                        this file.")
+    parser.add_argument("-p", "--print-hash", help="print hash of certificate in \
+                        file")
     args = parser.parse_args()
-    cert_hash = gen_cert(outfile=args.out)
 
-    print("== Success!")
-    print("Your certificate has been written to %s." % args.out)
-    print("The cert's sha256-hash is:")
-    print("    %s" % cert_hash)
+    if args.generate is not None:
+        cert_hash = gen_cert(outfile=args.generate)
+
+        print("== Success!")
+        print("Your certificate has been written to %s." % args.generate)
+        print("The cert's sha256-hash is:")
+        print("    %s" % cert_hash)
+    elif args.print_hash is not None:
+        cert = crypto.load_certificate(1, open(args.print_hash).read())
+        cert_hash = sha256()
+        cert_hash.update(crypto.dump_certificate(1, cert))
+        print("The certificate's sha256 hash is:")
+        print("    %s" % cert_hash.hexdigest())
+    else:
+        print("One parameter of either -g or -p is required!")

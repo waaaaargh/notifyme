@@ -8,7 +8,7 @@ set -e
 case "$1" in
     configure)
         # create server certificate
-        test -f /etc/notifyme/collector_cert.pem || notifyme-gencert -o /etc/notifyme/collector_cert.pem
+        test -f /etc/notifyme/collector_cert.pem || notifyme-gencert -g /etc/notifyme/collector_cert.pem
         # fix config file permissions
         chown -R notifyme-collector /etc/notifyme
     ;;

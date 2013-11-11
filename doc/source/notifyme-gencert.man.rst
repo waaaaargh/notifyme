@@ -18,7 +18,9 @@ SYNOPSIS
 
 ``notifyme-gencert`` ``--help``
 
-``notifyme-gencert`` ``-o OUTFILE``
+``notifyme-gencert`` ``-g OUTFILE``
+
+``notifyme-gencert`` ``-p CERTFILE``
 
 
 DESCRIPTION
@@ -29,14 +31,18 @@ Create a Private-public keypair for notify
 OPTIONS
 =======
 
--o file     path to write the output to.
+-g file     generate certificate and write it to file
+-p file     read the certificate from file and print it's SHA256 sum.
 --help      show help
 
 EXAMPLES
 ===========
 
-:notifyme-gencert -o cert.pem:
-    create a public/private keypair and write it to lel.pem
+:notifyme-gencert -g cert.pem:
+    create a public/private keypair and write it to cert.pem
+
+:notifyme-gencert -g cert.pem:
+    read a certificate from cert.pem and write its sha256 hash to STDOUT
 
 
 BUGS
