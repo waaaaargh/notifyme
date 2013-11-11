@@ -1,0 +1,40 @@
+#!/usr/bin/make -f
+DH_VERBOSE=1
+DESTDIR=$(CURDIR)/debian/notifyme-collector
+
+build-arch:
+
+build-indep:
+
+build:
+
+clean: clean-inits
+	dh_clean
+
+install: build
+	dh_testdir
+	dh_testroot
+	dh_installdirs
+
+	# actually install
+	install bin/notifyme-emitter ./debian/notifyme-emitter/usr/bin/
+
+	# build and install manpage
+	rst2man doc/source/notifyme-emitter.man.rst | gzip -9 > ./debian/notifyme-emitter/usr/share/man/man1/notifyme-emitter.1.gz
+
+
+binary-arch:
+
+binary-indep: install
+	dh_installchangelogs
+	dh_installdocs
+	dh_link
+	dh_compress
+	dh_fixperms
+	dh_installdeb
+	dh_gencontrol
+	dh_md5sums
+	dh_builddeb
+
+binary: binary-indep
+.PHONY: build clean binary-indep binary-arch binary install configure copy-inits clean-inits
