@@ -26,7 +26,16 @@ from notifyme.messages import NotificationMessage, WrappedProtocolMessage
 
 
 class SimpleEmitter:
+    """
+    Simple Emitter that sends a notification to a collector.
+    """
     def __init__(self, connection):
+        """
+        Initializes a Emitter.
+
+        Args:
+            connection: :class:`socket.connection` to talk to server.
+        """
         self.connection = connection
 
     def send_notification(self, notification):
@@ -37,6 +46,9 @@ class SimpleEmitter:
 
 
 class SSLEmitter:
+    """
+    Wraps SimpleEmitter in proper SSL.
+    """
     def __init__(self, hostname, port, keyfile, certfile, serverhash=None):
         """
         Initialize a SSL Connection to a remote server

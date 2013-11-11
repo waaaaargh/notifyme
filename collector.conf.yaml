@@ -5,7 +5,7 @@ publisher:
         certfile:   test_server.pem
 
         permissions:
-                - hash:     e5340bbbc4966055852e1b44031c1d598a231d77f871a129ec2d52ff221fc910
+                - hash:     bc5ed22b2c84d7968a769836711bfb8ca60cd1ef1156a6570e8f5fe724e077c1
                   resources:
                     - /foo
                     - /bar
@@ -18,7 +18,7 @@ collector:
         certfile:   test_server.pem
 
         permissions:
-                - hash:     e5340bbbc4966055852e1b44031c1d598a231d77f871a129ec2d52ff221fc910
+                - hash:     bc5ed22b2c84d7968a769836711bfb8ca60cd1ef1156a6570e8f5fe724e077c1
                   resources:
                     - /foo
                     - /bar
