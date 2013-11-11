@@ -26,6 +26,7 @@ from notifyme.emitter import SSLEmitter
 from notifyme.notification import Notification
 
 from argparse import ArgumentParser
+from OpenSSL import SSL
 
 if __name__ == '__main__':
     parser = ArgumentParser(description="Notifyme emitter component")
@@ -66,4 +67,8 @@ if __name__ == '__main__':
                                 resource=args.resource,
                                 data=None)
 
-    client.send_notification(notification)
+    try:
+        client.send_notification(notification)
+    except SSL.Error as ssl_exc:
+        logging.critical("SSL Error: %s" % ssl_exc.args[0][0][2])
+        sys.exit(1)

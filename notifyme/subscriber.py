@@ -111,6 +111,8 @@ class SimpleSubscriber(Thread):
                     cert_hash.update(crypto.dump_certificate(1, cert))
                     if cert_hash.hexdigest() == self.server_hash:
                         return True
+                    else:
+                        return False
                 else:
                     return True
 
@@ -127,7 +129,7 @@ class SimpleSubscriber(Thread):
         self._ssl_context = SSL.Context(SSL.TLSv1_METHOD)
         self._ssl_context.use_privatekey_file(keyfile)
         self._ssl_context.use_certificate_file(certfile)
-        self._ssl_context.set_verify(SSL.VERIFY_NONE, self.verification_helper)
+        self._ssl_context.set_verify(SSL.VERIFY_PEER, self.verification_helper)
 
         self._protocol = SubscriberProtocol(
             notification_callback=notification_callback,
@@ -172,7 +174,7 @@ class SimpleSubscriber(Thread):
             logging.debug("trying SSL Handshake")
             self._sock.do_handshake()
         except SSL.Error as e:
-            logging.critical("Server rejected your certificate")
+            logging.critical("SSL Error: %s", e.args[0][0][2])
             self.running = False
 
         while self.running:

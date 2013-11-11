@@ -70,7 +70,7 @@ class SSLEmitter:
         self._ssl_context = SSL.Context(SSL.TLSv1_METHOD)
         self._ssl_context.use_privatekey_file(keyfile)
         self._ssl_context.use_certificate_file(certfile)
-        self._ssl_context.set_verify(SSL.VERIFY_NONE,
+        self._ssl_context.set_verify(SSL.VERIFY_PEER | SSL.VERIFY_CLIENT_ONCE,
                                      self._verification_helper)
 
     def send_notification(self, notification):
@@ -80,11 +80,8 @@ class SSLEmitter:
         self._conn = SSL.Connection(self._ssl_context,
                                     socket(AF_INET, SOCK_STREAM))
         self._conn.connect((self.host, self.port))
-        try:
-            logging.debug("trying SSL handshake")
-            self._conn.do_handshake()
-        except SSL.Error:
-            pass
+        logging.debug("trying SSL handshake")
+        self._conn.do_handshake()
 
         client = SimpleEmitter(self._conn)
         client.send_notification(notification)

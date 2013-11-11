@@ -51,6 +51,7 @@ if __name__ == '__main__':
                         required=True)
     parser.add_argument('-r', '--resource', help="subscribe to resource",
                         required=True, action='append')
+    parser.add_argument('--server-hash', help="hash of the server's certificate")
     args = parser.parse_args()
     logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.DEBUG)
     subscriber = SimpleSubscriber(hostname=args.hostname,
@@ -58,7 +59,8 @@ if __name__ == '__main__':
                                   certfile=args.certificate,
                                   keyfile=args.key,
                                   notification_callback=notification_callback,
-                                  subscribed_resources=args.resource)
+                                  subscribed_resources=args.resource,
+                                  serverhash=args.server_hash)
     subscriber.daemon = True
     try:
         subscriber.run()
