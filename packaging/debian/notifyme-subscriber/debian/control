@@ -1,0 +1,16 @@
+Source: notifyme-subscriber
+Maintainer: Johannes Fürmann <johannes@weltraumpflege.org>
+Section: misc
+Priority: optional
+Standards-Version: 3.9.4
+Build-Depends: debhelper (>= 8), python3(>=3.0), python3-docutils
+X-Python3-Version: >=3.0.0
+
+Package: notifyme-subscriber
+Architecture: all
+Depends: ${python3:Depends},${misc:Depends},python3(>=3.0),python3-notifyme,python3-notify2
+Description: notification management and transport library - emitter.
+ NotifyMe is a solution that helps you manage and transport notifications over
+ the internet.
+ The subscriber component connects to a publisher and displays incoming 
+ notifications to the user via libnotify
