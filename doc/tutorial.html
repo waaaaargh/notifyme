@@ -1,0 +1,241 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Installation &mdash; notifyme 0.1~dev1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '0.1~dev1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="notifyme 0.1~dev1 documentation" href="index.html" />
+    <link rel="next" title="How to contribute" href="contributing.html" />
+    <link rel="prev" title="What is notifyme?" href="introduction.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="contributing.html" title="How to contribute"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="introduction.html" title="What is notifyme?"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">notifyme 0.1~dev1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="installation">
+<h1>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="debian">
+<h2>Debian<a class="headerlink" href="#debian" title="Permalink to this headline">¶</a></h2>
+<dl class="docutils">
+<dt><strong>Python Library</strong></dt>
+<dd><p class="first">Download and install the packages:</p>
+<div class="highlight-python"><pre>wget https://waaaaargh.github.com/notifyme/releases/python3-notifyme_0.1~dev1_all.deb
+sudo dpkg -i python3-notifyme_0.1~dev1_all.deb
+sudo apt-get install -f</pre>
+</div>
+<p class="last">You&#8217;re good to go!</p>
+</dd>
+<dt><strong>Collector</strong></dt>
+<dd><p class="first">Again, the packaging scripts do most of the work (if you have already installed the python library):</p>
+<div class="highlight-python"><pre>wget https://waaaaargh.github.com/notifyme/releases/notifyme-collector_0.1~dev1_all.deb
+sudo dpkg -i notifyme-collector_0.1~dev1_all.deb</pre>
+</div>
+<p class="last">And we&#8217;re done wit the installation.</p>
+</dd>
+<dt><strong>Emitter</strong></dt>
+<dd><p class="first">Installing the emitter is quite easy, too:</p>
+<div class="last highlight-python"><pre>wget https://waaaaargh.github.com/notifyme/releases/notifyme-emitter.1~dev1_all.deb
+sudo dpkg -i notifyme-emitter_0.1~dev1_all.deb</pre>
+</div>
+</dd>
+</dl>
+</div>
+<div class="section" id="other-distributions">
+<h2>Other distributions<a class="headerlink" href="#other-distributions" title="Permalink to this headline">¶</a></h2>
+<dl class="docutils">
+<dt><strong>Python Library</strong></dt>
+<dd>Download the source tarball and install it via <tt class="docutils literal"><span class="pre">sudo</span> <span class="pre">setup.py</span> <span class="pre">install</span></tt></dd>
+<dt><strong>Collector</strong></dt>
+<dd><p class="first">You can simply create a server certificate for the collector:</p>
+<div class="highlight-python"><pre>notifyme-gencert -g server_cert.pem</pre>
+</div>
+<p>Now copy the file <tt class="docutils literal"><span class="pre">collector.conf.yml</span></tt> from the source tarball. In the copy,
+edit the entries <tt class="docutils literal"><span class="pre">keyfile</span></tt> and <tt class="docutils literal"><span class="pre">certfile</span></tt> under each <tt class="docutils literal"><span class="pre">publisher</span></tt> and
+<tt class="docutils literal"><span class="pre">collector</span></tt> to point at the absolute path of the certificate you just created.</p>
+<p class="last"><strong>WARNING</strong>: If you use notifyme in production, you should <strong>NOT</strong> run
+<tt class="docutils literal"><span class="pre">notifyme-collector</span></tt> as root.</p>
+</dd>
+<dt><strong>Emitter</strong></dt>
+<dd>After you installed the python library, you can pretty much just use
+<tt class="docutils literal"><span class="pre">bin/notifyme-emitter</span></tt> frpom the source tarball.</dd>
+</dl>
+</div>
+</div>
+<div class="section" id="configuration">
+<h1>Configuration<a class="headerlink" href="#configuration" title="Permalink to this headline">¶</a></h1>
+<dl class="docutils">
+<dt><strong>Collector</strong></dt>
+<dd><dl class="first docutils">
+<dt>The YAML file that keeps the configuration has two main sections:</dt>
+<dd><ul class="first last simple">
+<li><tt class="docutils literal"><span class="pre">collector</span></tt> and</li>
+<li><tt class="docutils literal"><span class="pre">publisher</span></tt></li>
+</ul>
+</dd>
+</dl>
+<p>Each of those sections defines the network parameters of the respective
+components:</p>
+<dl class="last docutils">
+<dt><tt class="docutils literal"><span class="pre">address</span></tt></dt>
+<dd>address of the interface on which the component should listen</dd>
+<dt><tt class="docutils literal"><span class="pre">port</span></tt></dt>
+<dd>port number on which the component should listen.</dd>
+<dt><tt class="docutils literal"><span class="pre">keyfile/certfile</span></tt></dt>
+<dd>absolute path to the file with the X509 Key/Certificate</dd>
+<dt><tt class="docutils literal"><span class="pre">permissions</span></tt></dt>
+<dd><p class="first">Now this is where it gets a bit tricky:</p>
+<dl class="docutils">
+<dt><tt class="docutils literal"><span class="pre">permission</span></tt> entries have the following atributes:</dt>
+<dd><ul class="first last simple">
+<li>a <cite>hash</cite> that contains the SHA256 Sum of the client, and</li>
+<li>a list of resources the client may subscribe/push to.</li>
+</ul>
+</dd>
+</dl>
+<p>This might look something like that:</p>
+<div class="highlight-python"><pre>- hash:     bc5ed22b2c84d7968a769836711bfb8ca60cd1ef1156a6570e8f5fe724e077c1
+  resources:
+  - /foo
+  - /bar</pre>
+</div>
+<p class="last">You create certificates with the <tt class="docutils literal"><span class="pre">notifyme-gencert</span></tt> utility.</p>
+</dd>
+</dl>
+</dd>
+<dt><strong>Subscriber</strong></dt>
+<dd><p class="first">The subscriber looks for a configuration file in
+<tt class="docutils literal"><span class="pre">~/.notifyme-collector.conf.yaml</span></tt> or expects a path to an alternative
+location as a parameter.</p>
+<p>Here&#8217;s how a configuration file could look:</p>
+<div class="highlight-python"><pre>hostname:   localhost
+port:       10023
+certfile:   test_client.pem
+keyfile:    test_client.pem
+serverhash: deadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefderadbeefdeadbeef
+resources:
+    - /foo
+    - /bar</pre>
+</div>
+<p>So, what do the different parameters mean?</p>
+<dl class="docutils">
+<dt><tt class="docutils literal"><span class="pre">hostname</span></tt>:</dt>
+<dd>hostname of the publisher to which we want to connect</dd>
+<dt><tt class="docutils literal"><span class="pre">port</span></tt>:</dt>
+<dd>port number on which the publisher is listening</dd>
+<dt><tt class="docutils literal"><span class="pre">certfile</span></tt>/<tt class="docutils literal"><span class="pre">keyfile</span></tt>:</dt>
+<dd>path to the X509 Certificate/Key, ideally created by <tt class="docutils literal"><span class="pre">notifyme-gencert</span></tt>.</dd>
+<dt><tt class="docutils literal"><span class="pre">serverhash</span></tt>:</dt>
+<dd>SHA256 sum of the server&#8217;s SSL Certificate</dd>
+<dt><tt class="docutils literal"><span class="pre">resources</span></tt>:</dt>
+<dd>List of resources we want to subscribe to.</dd>
+</dl>
+<p class="last">By the way, this example is shipped in the source tarball for your
+convenience.</p>
+</dd>
+</dl>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Installation</a><ul>
+<li><a class="reference internal" href="#debian">Debian</a></li>
+<li><a class="reference internal" href="#other-distributions">Other distributions</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#configuration">Configuration</a></li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="introduction.html"
+                        title="previous chapter">What is notifyme?</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="contributing.html"
+                        title="next chapter">How to contribute</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/tutorial.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="contributing.html" title="How to contribute"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="introduction.html" title="What is notifyme?"
+             >previous</a> |</li>
+        <li><a href="index.html">notifyme 0.1~dev1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, Johannes Fürmann.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

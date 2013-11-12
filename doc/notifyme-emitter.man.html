@@ -1,0 +1,182 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>notifyme-emitter &mdash; notifyme 0.1~dev1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '0.1~dev1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="notifyme 0.1~dev1 documentation" href="index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li><a href="index.html">notifyme 0.1~dev1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="notifyme-emitter">
+<h1>notifyme-emitter<a class="headerlink" href="#notifyme-emitter" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="send-notifyme-notifications-to-a-collector">
+<h2>send notifyme notifications to a collector<a class="headerlink" href="#send-notifyme-notifications-to-a-collector" title="Permalink to this headline">¶</a></h2>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Author:</th><td class="field-body">Johannes Fürmann</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Date:</th><td class="field-body">2013-11-06</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Copyright:</th><td class="field-body">AGPLv3</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Version:</th><td class="field-body">0.1~dev1</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Manual section:</th><td class="field-body">1</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Manual group:</th><td class="field-body">networking</td>
+</tr>
+</tbody>
+</table>
+<div class="section" id="synopsis">
+<h3>SYNOPSIS<a class="headerlink" href="#synopsis" title="Permalink to this headline">¶</a></h3>
+<p><tt class="docutils literal"><span class="pre">notifyme-emitter</span></tt> <tt class="docutils literal"><span class="pre">--help</span></tt></p>
+<dl class="docutils">
+<dt><tt class="docutils literal"><span class="pre">notifyme-emitter</span></tt> <tt class="docutils literal"><span class="pre">-k</span> <span class="pre">KEYFILE</span></tt> <tt class="docutils literal"><span class="pre">-c</span> <span class="pre">CERTFILE</span></tt> <tt class="docutils literal"><span class="pre">-n</span> <span class="pre">HOSTNAME</span></tt></dt>
+<dd><tt class="docutils literal"><span class="pre">-p</span> <span class="pre">PORTNUMBER</span></tt> <tt class="docutils literal"><span class="pre">-r</span> <span class="pre">RESOURCE</span></tt> <tt class="docutils literal"><span class="pre">-s</span> <span class="pre">SUBJECT</span></tt> <tt class="docutils literal"><span class="pre">[-u</span> <span class="pre">URGENCY]</span></tt>
+<tt class="docutils literal"><span class="pre">[--serverhash</span> <span class="pre">SERVERHASH]</span></tt></dd>
+</dl>
+</div>
+<div class="section" id="description">
+<h3>DESCRIPTION<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h3>
+<p>Send notifyme notifications to a collector</p>
+</div>
+<div class="section" id="options">
+<h3>OPTIONS<a class="headerlink" href="#options" title="Permalink to this headline">¶</a></h3>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd><span class="option">--help</span></kbd></td>
+<td>show help</td></tr>
+<tr><td class="option-group">
+<kbd><span class="option">-k <var>KEYFILE</var></span></kbd></td>
+<td>use KEYFILE as source for X509 Key</td></tr>
+<tr><td class="option-group">
+<kbd><span class="option">-c <var>CERTFILE</var></span></kbd></td>
+<td>use CERTFILE as source for X509 Certificate</td></tr>
+<tr><td class="option-group">
+<kbd><span class="option">-n <var>HOSTNAME</var></span></kbd></td>
+<td>connect to HOSTNAME</td></tr>
+<tr><td class="option-group">
+<kbd><span class="option">-p <var>PORTNUMBER</var></span></kbd></td>
+<td>connect to PORTNUMBER</td></tr>
+<tr><td class="option-group">
+<kbd><span class="option">-s <var>SUBJECT</var></span></kbd></td>
+<td>Subject of the notification to send</td></tr>
+<tr><td class="option-group">
+<kbd><span class="option">-u <var>URGENCY</var></span></kbd></td>
+<td>Urgency of the notification to send (1 &lt;= URGENCY &lt;= 100)</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd><span class="option">--serverhash <var>HASH</var></span></kbd></td>
+</tr>
+<tr><td>&nbsp;</td><td>SHA256 sum of the server&#8217;s certificate. If this option is
+used, the emitter will not connect to a server with another
+certificate. Instead it will throw an error and exit.</td></tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="bugs">
+<h3>BUGS<a class="headerlink" href="#bugs" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li>None known so far. Drop me a mail if you find one!</li>
+</ul>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">notifyme-emitter</a><ul>
+<li><a class="reference internal" href="#send-notifyme-notifications-to-a-collector">send notifyme notifications to a collector</a><ul>
+<li><a class="reference internal" href="#synopsis">SYNOPSIS</a></li>
+<li><a class="reference internal" href="#description">DESCRIPTION</a></li>
+<li><a class="reference internal" href="#options">OPTIONS</a></li>
+<li><a class="reference internal" href="#bugs">BUGS</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/notifyme-emitter.man.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li><a href="index.html">notifyme 0.1~dev1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, Johannes Fürmann.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>
