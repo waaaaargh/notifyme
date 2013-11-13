@@ -1,8 +1,8 @@
 publisher:
         address:    localhost
         port:       10023
-        keyfile:    test_server.pem
-        certfile:   test_server.pem
+        keyfile:    /etc/notifyme/collector_cert.pem
+        certfile:   /etc/notifyme/collector_cert.pem
 
         permissions:
                 - hash:     deadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefderadbeefdeadbeef
@@ -14,8 +14,8 @@ publisher:
 collector:
         address:    localhost
         port:       10024
-        keyfile:    test_server.pem
-        certfile:   test_server.pem
+        keyfile:    /etc/notifyme/collector_cert.pem
+        certfile:   /etc/notifyme/collector_cert.pem
 
         permissions:
                 - hash:     deadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefderadbeefdeadbeef
