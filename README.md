@@ -1,3 +1,12 @@
+>
+> NotifyMe is dead. The project that was supposed to use it, never came to 
+> be. I keep it online for historical purposes; but that's about it.
+> 
+> Please don't use it in a production environment without double checking
+> every single line of code.
+>
+
+
 NotifyMe...
 ===========
 
